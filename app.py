@@ -15,6 +15,7 @@ from utils.self_modification import SelfModification
 from utils.autonomous_research import AutonomousResearch
 from utils.consciousness import Consciousness
 from utils.creativity import Creativity
+from utils.database import Database
 
 st.set_page_config(page_title="CoreKnow", page_icon="🧠", layout="wide")
 
@@ -51,6 +52,8 @@ if "consciousness" not in st.session_state:
     st.session_state.consciousness = Consciousness(st.session_state.kg, "")
 if "creativity" not in st.session_state:
     st.session_state.creativity = Creativity(st.session_state.kg, "")
+if "db" not in st.session_state:
+    st.session_state.db = Database()
 
 # Get API keys
 try:
@@ -107,6 +110,14 @@ with st.sidebar:
             count += learned
         
         st.success(f"✅ Learned {count} items!")
+    
+    st.markdown("---")
+    st.markdown("### 💾 Save to Cloud")
+    if st.button("📤 Save to Supabase", use_container_width=True):
+        st.session_state.db.save_knowledge_graph(st.session_state.kg)
+        st.session_state.db.save_memory(st.session_state.memory)
+        st.session_state.db.save_learning_log(st.session_state.improvement)
+        st.success("✅ Saved to Supabase!")
 
 # Main area
 tabs = st.tabs([
@@ -200,29 +211,26 @@ with tabs[4]:
             st.write(st.session_state.self_mod.improve_algorithm(algo, goal))
 
 with tabs[5]:
-    st.markdown("### 🎨 Creativity Engine")
     creative_type = st.selectbox("Type", ["Poem", "Song", "Story"])
     if creative_type == "Poem":
-        topic = st.text_input("Topic", placeholder="e.g., The African sky")
+        topic = st.text_input("Topic")
         if st.button("Write Poem"):
             st.write(st.session_state.creativity.write_poem(topic))
     elif creative_type == "Song":
-        theme = st.text_input("Theme", placeholder="e.g., Hope")
+        theme = st.text_input("Theme")
         if st.button("Compose Song"):
             st.write(st.session_state.creativity.compose_song(theme))
     elif creative_type == "Story":
-        prompt = st.text_area("Prompt", placeholder="e.g., A young miner discovers...")
+        prompt = st.text_area("Prompt")
         if st.button("Write Story"):
             st.write(st.session_state.creativity.write_story(prompt))
 
 with tabs[6]:
-    st.markdown("### 🧘 Consciousness")
     if st.button("🧠 Reflect on Self", type="primary"):
         with st.spinner("Reflecting..."):
             st.write(st.session_state.consciousness.reflect())
     
-    st.markdown("---")
-    goal = st.text_input("Set Goal", placeholder="e.g., Learn about quantum computing")
+    goal = st.text_input("Set Goal")
     if st.button("Set Goal"):
         st.success(st.session_state.consciousness.set_goal(goal))
     
@@ -241,6 +249,7 @@ with tabs[7]:
     research_stats = st.session_state.research.get_stats()
     consciousness_state = st.session_state.consciousness.get_state()
     creativity_count = st.session_state.creativity.get_creations_count()
+    db_stats = st.session_state.db.get_stats()
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -251,3 +260,8 @@ with tabs[7]:
         st.metric("Research", research_stats["total_research"])
     with col4:
         st.metric("Creations", creativity_count)
+    
+    if db_stats.get("enabled"):
+        st.success(f"✅ Supabase connected – {db_stats.get('kg_nodes', 0)} nodes saved")
+    else:
+        st.warning("Supabase not connected. Add secrets to enable cloud storage.")
