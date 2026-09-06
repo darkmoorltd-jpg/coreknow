@@ -1,0 +1,12 @@
+streamlit
+supabase
+pillow
+numpy
+requests
+python-dotenv
+faiss-cpu
+networkx
+matplotlib
+PyPDF2
+beautifulsoup4
+plotly
