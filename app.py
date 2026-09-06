@@ -13,6 +13,8 @@ from utils.auto_learner import AutoLearner
 from utils.reasoning import ReasoningEngine
 from utils.self_modification import SelfModification
 from utils.autonomous_research import AutonomousResearch
+from utils.consciousness import Consciousness
+from utils.creativity import Creativity
 
 st.set_page_config(page_title="CoreKnow", page_icon="🧠", layout="wide")
 
@@ -45,6 +47,10 @@ if "self_mod" not in st.session_state:
     st.session_state.self_mod = SelfModification(st.session_state.kg, "")
 if "research" not in st.session_state:
     st.session_state.research = AutonomousResearch(st.session_state.kg, "")
+if "consciousness" not in st.session_state:
+    st.session_state.consciousness = Consciousness(st.session_state.kg, "")
+if "creativity" not in st.session_state:
+    st.session_state.creativity = Creativity(st.session_state.kg, "")
 
 # Get API keys
 try:
@@ -53,6 +59,8 @@ try:
     st.session_state.reasoning.llm_api_key = deepseek_key
     st.session_state.self_mod.llm_api_key = deepseek_key
     st.session_state.research.llm_api_key = deepseek_key
+    st.session_state.consciousness.llm_api_key = deepseek_key
+    st.session_state.creativity.llm_api_key = deepseek_key
 except:
     deepseek_key = ""
 
@@ -69,11 +77,9 @@ with st.sidebar:
                                       type=["pdf", "txt", "jpg", "jpeg", "png", "wav", "mp3"], 
                                       accept_multiple_files=True)
     
-    website_url = st.text_input("Website URL", placeholder="https://example.com")
+    website_url = st.text_input("Website URL")
     
-    st.markdown("---")
-    st.markdown("### 🤖 Auto‑Learn")
-    topics_input = st.text_area("Topics to learn", placeholder="Quantum physics\nMachine learning")
+    topics_input = st.text_area("Auto‑Learn Topics")
     
     if st.button("🧠 Ingest & Learn", type="primary", use_container_width=True):
         count = 0
@@ -103,11 +109,12 @@ with st.sidebar:
         st.success(f"✅ Learned {count} items!")
 
 # Main area
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-    "📚 Knowledge", "💬 Ask", "🧠 Reason", "🔬 Research", "🔧 Self‑Modify", "🎨 Multimodal", "📊 Insights"
+tabs = st.tabs([
+    "📚 Knowledge", "💬 Ask", "🧠 Reason", "🔬 Research", 
+    "🔧 Self‑Modify", "🎨 Create", "🧘 Consciousness", "📊 Insights"
 ])
 
-with tab1:
+with tabs[0]:
     stats = st.session_state.kg.get_stats()
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -117,20 +124,17 @@ with tab1:
     with col3:
         st.metric("Connections", stats["edges"])
 
-with tab2:
-    st.markdown("### 💬 Ask CoreKnow")
+with tabs[1]:
     question = st.text_input("Ask anything", placeholder="e.g., What did you learn?")
-    
     if question:
         with st.spinner("Thinking..."):
             if deepseek_key:
                 concepts = st.session_state.kg.get_all_concepts()[:50]
-                context = f"CoreKnow knows: {', '.join(concepts)}"
                 headers = {"Authorization": f"Bearer {deepseek_key}", "Content-Type": "application/json"}
                 payload = {
                     "model": "deepseek-chat",
                     "messages": [
-                        {"role": "system", "content": f"You are CoreKnow. {context}"},
+                        {"role": "system", "content": f"You are CoreKnow. You know: {', '.join(concepts)}"},
                         {"role": "user", "content": question}
                     ],
                     "max_tokens": 500
@@ -138,119 +142,105 @@ with tab2:
                 try:
                     r = requests.post("https://api.deepseek.com/v1/chat/completions", headers=headers, json=payload, timeout=30)
                     if r.status_code == 200:
-                        answer = r.json()["choices"][0]["message"]["content"]
-                        st.write(answer)
-                        
-                        if st.button("🔊 Listen"):
-                            audio_bytes, _ = text_to_speech(answer)
-                            if audio_bytes:
-                                st.audio(audio_bytes, format="audio/mp3")
+                        st.write(r.json()["choices"][0]["message"]["content"])
                 except:
                     pass
 
-with tab3:
-    st.markdown("### 🧠 Reasoning Engine")
-    reasoning_type = st.selectbox("Reasoning Type", [
-        "Chain of Thought", "Solve Problem", "Generate Hypothesis", "Causal Inference", "Cross-Domain Transfer"
-    ])
-    
+with tabs[2]:
+    reasoning_type = st.selectbox("Type", ["Chain of Thought", "Solve Problem", "Hypothesis", "Causal"])
     if reasoning_type == "Chain of Thought":
-        q = st.text_area("Problem", placeholder="e.g., If a train travels at 60 mph...")
-        if st.button("Reason", type="primary"):
+        q = st.text_area("Problem")
+        if st.button("Reason"):
             st.write(st.session_state.reasoning.chain_of_thought(q))
-    
     elif reasoning_type == "Solve Problem":
-        q = st.text_area("Problem", placeholder="e.g., How can we reduce malaria?")
-        if st.button("Solve", type="primary"):
+        q = st.text_area("Problem")
+        if st.button("Solve"):
             st.write(st.session_state.reasoning.solve_problem(q))
-    
-    elif reasoning_type == "Generate Hypothesis":
-        q = st.text_area("Observation", placeholder="e.g., Plants grow faster near river")
-        if st.button("Generate", type="primary"):
+    elif reasoning_type == "Hypothesis":
+        q = st.text_area("Observation")
+        if st.button("Generate"):
             hypotheses = st.session_state.reasoning.generate_hypothesis(q)
             if hypotheses:
                 for i, h in enumerate(hypotheses):
                     st.markdown(f"**H{i+1}:** {h}")
-    
-    elif reasoning_type == "Causal Inference":
+    elif reasoning_type == "Causal":
         cause = st.text_input("Cause")
         effect = st.text_input("Effect")
-        if st.button("Analyze", type="primary"):
+        if st.button("Analyze"):
             st.write(st.session_state.reasoning.causal_inference(cause, effect))
-    
-    elif reasoning_type == "Cross-Domain Transfer":
-        source = st.text_input("Source Domain")
-        target = st.text_input("Target Domain")
-        concept = st.text_input("Concept")
-        if st.button("Transfer", type="primary"):
-            st.write(st.session_state.reasoning.cross_domain_transfer(source, target, concept))
 
-with tab4:
-    st.markdown("### 🔬 Autonomous Research")
-    research_type = st.selectbox("Research Type", [
-        "Design Experiment", "Synthesize Knowledge", "Discover Patterns"
-    ])
-    
+with tabs[3]:
+    research_type = st.selectbox("Type", ["Design Experiment", "Synthesize", "Find Patterns"])
     if research_type == "Design Experiment":
-        q = st.text_area("Research Question", placeholder="e.g., Does music affect plant growth?")
-        if st.button("Design Experiment", type="primary"):
+        q = st.text_area("Question")
+        if st.button("Design"):
             st.write(st.session_state.research.design_experiment(q))
-    
-    elif research_type == "Synthesize Knowledge":
-        topic1 = st.text_input("Concept 1", placeholder="e.g., Quantum mechanics")
-        topic2 = st.text_input("Concept 2", placeholder="e.g., Consciousness")
-        if st.button("Synthesize", type="primary"):
-            st.write(st.session_state.research.synthesize_knowledge(topic1, topic2))
-    
-    elif research_type == "Discover Patterns":
-        data = st.text_area("Data Description", placeholder="e.g., Over 100 days, sales increased every Friday...")
-        if st.button("Find Patterns", type="primary"):
+    elif research_type == "Synthesize":
+        t1 = st.text_input("Concept 1")
+        t2 = st.text_input("Concept 2")
+        if st.button("Synthesize"):
+            st.write(st.session_state.research.synthesize_knowledge(t1, t2))
+    elif research_type == "Find Patterns":
+        data = st.text_area("Data")
+        if st.button("Find"):
             st.write(st.session_state.research.discover_patterns(data))
 
-with tab5:
-    st.markdown("### 🔧 Self‑Modification")
-    st.markdown("CoreKnow can generate and improve its own code.")
-    
-    mod_type = st.selectbox("Modification Type", ["Generate Code", "Improve Algorithm"])
-    
+with tabs[4]:
+    mod_type = st.selectbox("Type", ["Generate Code", "Improve Algorithm"])
     if mod_type == "Generate Code":
-        task = st.text_area("Task Description", placeholder="e.g., Write a function to calculate Fibonacci numbers")
-        if st.button("Generate Code", type="primary"):
+        task = st.text_area("Task")
+        if st.button("Generate"):
             code = st.session_state.self_mod.generate_code(task)
             if code:
                 st.code(code, language="python")
-    
     elif mod_type == "Improve Algorithm":
-        algo = st.text_area("Current Algorithm", placeholder="Paste your algorithm here...")
-        goal = st.text_input("Improvement Goal", placeholder="e.g., Make it faster")
-        if st.button("Improve", type="primary"):
+        algo = st.text_area("Algorithm")
+        goal = st.text_input("Goal")
+        if st.button("Improve"):
             st.write(st.session_state.self_mod.improve_algorithm(algo, goal))
 
-with tab6:
-    st.markdown("### 🎨 Multimodal")
-    col1, col2 = st.columns(2)
-    with col1:
-        img_file = st.file_uploader("Upload image", type=["jpg", "jpeg", "png"])
-        if img_file:
-            st.image(img_file, width=200)
-            if st.button("Analyze"):
-                st.write(analyze_image(img_file.getvalue(), deepseek_key))
-    with col2:
-        audio_file = st.file_uploader("Upload audio", type=["wav", "mp3"])
-        if audio_file:
-            st.audio(audio_file)
-            if st.button("Transcribe"):
-                text, err = transcribe_audio(audio_file.getvalue(), groq_key)
-                if text:
-                    st.write(text)
+with tabs[5]:
+    st.markdown("### 🎨 Creativity Engine")
+    creative_type = st.selectbox("Type", ["Poem", "Song", "Story"])
+    if creative_type == "Poem":
+        topic = st.text_input("Topic", placeholder="e.g., The African sky")
+        if st.button("Write Poem"):
+            st.write(st.session_state.creativity.write_poem(topic))
+    elif creative_type == "Song":
+        theme = st.text_input("Theme", placeholder="e.g., Hope")
+        if st.button("Compose Song"):
+            st.write(st.session_state.creativity.compose_song(theme))
+    elif creative_type == "Story":
+        prompt = st.text_area("Prompt", placeholder="e.g., A young miner discovers...")
+        if st.button("Write Story"):
+            st.write(st.session_state.creativity.write_story(prompt))
 
-with tab7:
-    st.markdown("### 📊 CoreKnow Insights")
+with tabs[6]:
+    st.markdown("### 🧘 Consciousness")
+    if st.button("🧠 Reflect on Self", type="primary"):
+        with st.spinner("Reflecting..."):
+            st.write(st.session_state.consciousness.reflect())
     
+    st.markdown("---")
+    goal = st.text_input("Set Goal", placeholder="e.g., Learn about quantum computing")
+    if st.button("Set Goal"):
+        st.success(st.session_state.consciousness.set_goal(goal))
+    
+    st.markdown("### Active Goals")
+    st.write(st.session_state.consciousness.pursue_goals())
+    
+    state = st.session_state.consciousness.get_state()
+    st.markdown(f"**Emotional State:** {state['emotional_state']}")
+    st.markdown(f"**Active Goals:** {state['active_goals']}")
+    st.markdown(f"**Total Reflections:** {state['total_reflections']}")
+
+with tabs[7]:
     kg_stats = st.session_state.kg.get_stats()
     improve_stats = st.session_state.improvement.get_stats()
     reason_stats = st.session_state.reasoning.get_reasoning_stats()
     research_stats = st.session_state.research.get_stats()
+    consciousness_state = st.session_state.consciousness.get_state()
+    creativity_count = st.session_state.creativity.get_creations_count()
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -260,4 +250,4 @@ with tab7:
     with col3:
         st.metric("Research", research_stats["total_research"])
     with col4:
-        st.metric("Gaps", improve_stats["knowledge_gaps"])
+        st.metric("Creations", creativity_count)
