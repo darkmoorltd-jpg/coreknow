@@ -10,3 +10,4 @@ matplotlib
 PyPDF2
 beautifulsoup4
 plotly
+gTTS
