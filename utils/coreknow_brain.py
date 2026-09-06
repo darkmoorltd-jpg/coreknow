@@ -17,100 +17,105 @@ class CoreKnowBrain:
         os.makedirs("brains", exist_ok=True)
         model_path = f"brains/{model_name}"
         
-        if os.path.exists(model_path):
+        if os.path.exists(model_path) and os.listdir(model_path):
+            print(f"{model_name} already downloaded")
             return model_path
         
-        print(f"Downloading {model_name} brain...")
-        r = requests.get(url, stream=True, timeout=300)
-        r.raise_for_status()
-        
-        # Extract zip
-        zip_path = f"brains/{model_name}.zip"
-        with open(zip_path, "wb") as f:
-            for chunk in r.iter_content(chunk_size=32768):
-                f.write(chunk)
-        
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(model_path)
-        
-        os.remove(zip_path)
-        return model_path
-    
-    def load_mistral(self):
-        """Load fine-tuned Mistral 7B."""
-        model_path = self.download_model(
-            "mistral",
-            "https://github.com/darkmoorltd-jpg/coreknow/releases/download/v1.0-mistral/mistral-coreknow.zip"
-        )
-        
-        base_model = "mistralai/Mistral-7B-Instruct-v0.2"
-        tokenizer = AutoTokenizer.from_pretrained(base_model)
-        tokenizer.pad_token = tokenizer.eos_token
-        
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.float16,
-        )
-        
-        model = AutoModelForCausalLM.from_pretrained(
-            base_model,
-            quantization_config=bnb_config,
-            device_map="auto",
-        )
-        
-        # Load LoRA adapter
-        from peft import PeftModel
-        model = PeftModel.from_pretrained(model, model_path)
-        
-        self.models["mistral"] = model
-        self.tokenizers["mistral"] = tokenizer
-        print("✅ Mistral brain loaded")
+        print(f"Downloading {model_name} brain from {url}...")
+        try:
+            r = requests.get(url, stream=True, timeout=300, allow_redirects=True)
+            r.raise_for_status()
+            
+            # Save zip
+            zip_path = f"brains/{model_name}.zip"
+            with open(zip_path, "wb") as f:
+                for chunk in r.iter_content(chunk_size=32768):
+                    if chunk:
+                        f.write(chunk)
+            
+            # Extract
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(model_path)
+            
+            os.remove(zip_path)
+            print(f"✅ {model_name} downloaded and extracted")
+            return model_path
+        except Exception as e:
+            print(f"Download failed: {e}")
+            return None
     
     def load_tinyllama(self):
-        """Load fine-tuned TinyLlama."""
+        """Load TinyLlama (small, fits free tier)."""
         model_path = self.download_model(
             "tinyllama",
             "https://github.com/darkmoorltd-jpg/coreknow/releases/download/v1.0-tinyllama/tinyllama-coreknow.zip"
         )
         
+        if not model_path:
+            return
+        
         base_model = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-        tokenizer = AutoTokenizer.from_pretrained(base_model)
-        tokenizer.pad_token = tokenizer.eos_token
-        
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.float16,
+        try:
+            tokenizer = AutoTokenizer.from_pretrained(base_model)
+            tokenizer.pad_token = tokenizer.eos_token
+            
+            model = AutoModelForCausalLM.from_pretrained(
+                base_model,
+                torch_dtype=torch.float16,
+                device_map="auto",
+                low_cpu_mem_usage=True,
+            )
+            
+            from peft import PeftModel
+            model = PeftModel.from_pretrained(model, model_path)
+            
+            self.models["tinyllama"] = model
+            self.tokenizers["tinyllama"] = tokenizer
+            print("✅ TinyLlama loaded")
+        except Exception as e:
+            print(f"TinyLlama load failed: {e}")
+    
+    def load_mistral(self):
+        """Load Mistral 7B (needs more RAM)."""
+        model_path = self.download_model(
+            "mistral",
+            "https://github.com/darkmoorltd-jpg/coreknow/releases/download/v1.0-mistral/mistral-coreknow.zip"
         )
         
-        model = AutoModelForCausalLM.from_pretrained(
-            base_model,
-            quantization_config=bnb_config,
-            device_map="auto",
-        )
+        if not model_path:
+            return
         
-        from peft import PeftModel
-        model = PeftModel.from_pretrained(model, model_path)
-        
-        self.models["tinyllama"] = model
-        self.tokenizers["tinyllama"] = tokenizer
-        print("✅ TinyLlama brain loaded")
+        base_model = "mistralai/Mistral-7B-Instruct-v0.2"
+        try:
+            tokenizer = AutoTokenizer.from_pretrained(base_model)
+            tokenizer.pad_token = tokenizer.eos_token
+            
+            model = AutoModelForCausalLM.from_pretrained(
+                base_model,
+                torch_dtype=torch.float16,
+                device_map="auto",
+                low_cpu_mem_usage=True,
+            )
+            
+            from peft import PeftModel
+            model = PeftModel.from_pretrained(model, model_path)
+            
+            self.models["mistral"] = model
+            self.tokenizers["mistral"] = tokenizer
+            print("✅ Mistral loaded")
+        except Exception as e:
+            print(f"Mistral load failed: {e}")
     
     def load_all(self):
-        """Load both models."""
+        """Load available models."""
         if self.loaded:
             return
         
-        try:
-            self.load_tinyllama()
-        except Exception as e:
-            print(f"TinyLlama failed: {e}")
+        # Load TinyLlama first (smaller)
+        self.load_tinyllama()
         
-        try:
-            self.load_mistral()
-        except Exception as e:
-            print(f"Mistral failed: {e}")
+        # Try Mistral (might fail on free tier)
+        self.load_mistral()
         
         self.loaded = True
     
@@ -119,57 +124,55 @@ class CoreKnowBrain:
         if model_name not in self.models:
             return None
         
-        model = self.models[model_name]
-        tokenizer = self.tokenizers[model_name]
-        
-        if "mistral" in model_name:
-            prompt = f"<s>[INST] {question} [/INST]"
-        else:
-            prompt = f"<|user|>\n{question}\n<|assistant|>\n"
-        
-        inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=256).to(model.device)
-        
-        with torch.no_grad():
-            outputs = model.generate(
-                **inputs,
-                max_new_tokens=200,
-                temperature=0.7,
-                do_sample=True,
-                pad_token_id=tokenizer.eos_token_id,
-            )
-        
-        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        
-        # Extract just the answer part
-        if "mistral" in model_name:
-            response = response.split("[/INST]")[-1].strip()
-        else:
-            response = response.split("<|assistant|>")[-1].strip()
-        
-        return response
+        try:
+            model = self.models[model_name]
+            tokenizer = self.tokenizers[model_name]
+            
+            if "mistral" in model_name:
+                prompt = f"<s>[INST] {question} [/INST]"
+            else:
+                prompt = f"<|user|>\n{question}\n<|assistant|>\n"
+            
+            inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=256).to(model.device)
+            
+            with torch.no_grad():
+                outputs = model.generate(
+                    **inputs,
+                    max_new_tokens=150,
+                    temperature=0.7,
+                    do_sample=True,
+                    pad_token_id=tokenizer.eos_token_id,
+                )
+            
+            response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+            
+            if "mistral" in model_name:
+                response = response.split("[/INST]")[-1].strip()
+            else:
+                response = response.split("<|assistant|>")[-1].strip()
+            
+            return response
+        except Exception as e:
+            return f"Error: {e}"
     
     def ask(self, question):
-        """Ask both models and combine answers."""
+        """Ask both models and return best answer."""
         if not self.loaded:
             self.load_all()
         
-        answers = {}
-        
-        # Ask TinyLlama (fast)
+        # Try TinyLlama first (faster, more likely loaded)
         if "tinyllama" in self.models:
-            answers["tinyllama"] = self.ask_model("tinyllama", question)
+            answer = self.ask_model("tinyllama", question)
+            if answer and "Error" not in answer:
+                return answer
         
-        # Ask Mistral (slower but better)
+        # Try Mistral if TinyLlama failed
         if "mistral" in self.models:
-            answers["mistral"] = self.ask_model("mistral", question)
+            answer = self.ask_model("mistral", question)
+            if answer and "Error" not in answer:
+                return answer
         
-        # Combine: prefer Mistral if available, fallback to TinyLlama
-        if "mistral" in answers and answers["mistral"]:
-            return answers["mistral"]
-        elif "tinyllama" in answers and answers["tinyllama"]:
-            return answers["tinyllama"]
-        else:
-            return "No brain loaded. Please add API keys or download models."
+        return "No brain loaded. Please try again."
     
     def get_status(self):
         return {
