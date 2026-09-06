@@ -5,6 +5,9 @@ import json
 import requests
 from utils.ingestion import ingest_file, read_website
 from utils.knowledge_graph import KnowledgeGraph
+from utils.multimodal import analyze_image, transcribe_audio, text_to_speech
+from utils.web_crawler import WebCrawler
+from utils.memory import MemorySystem
 
 st.set_page_config(page_title="CoreKnow", page_icon="🧠", layout="wide")
 
@@ -24,58 +27,84 @@ st.markdown('<div class="subtitle">The Self‑Learning AI That Knows Everything<
 # Initialize session state
 if "kg" not in st.session_state:
     st.session_state.kg = KnowledgeGraph()
+if "memory" not in st.session_state:
+    st.session_state.memory = MemorySystem()
 if "documents" not in st.session_state:
     st.session_state.documents = []
 if "feedback" not in st.session_state:
     st.session_state.feedback = []
-if "qa_history" not in st.session_state:
-    st.session_state.qa_history = []
 
-# Get DeepSeek API key
+# Get API keys
 try:
     deepseek_key = st.secrets["deepseek"]["api_key"]
 except:
     deepseek_key = ""
+try:
+    groq_key = st.secrets["groq"]["api_key"]
+except:
+    groq_key = ""
 
-# Sidebar for ingestion
+# Sidebar
 with st.sidebar:
     st.markdown("## 📥 Feed CoreKnow")
     
-    uploaded_files = st.file_uploader("Upload Books/PDFs/TXT", type=["pdf", "txt"], accept_multiple_files=True)
+    # File upload (text + image + audio)
+    uploaded_files = st.file_uploader("Upload Files (PDF/TXT/Image/Audio)", 
+                                      type=["pdf", "txt", "jpg", "jpeg", "png", "wav", "mp3"], 
+                                      accept_multiple_files=True)
+    
     website_url = st.text_input("Or enter website URL", placeholder="https://example.com")
     
-    if uploaded_files or website_url:
-        if st.button("🧠 Ingest Knowledge", type="primary", use_container_width=True):
-            with st.spinner("CoreKnow is learning..."):
-                count = 0
-                for file in uploaded_files:
-                    text = ingest_file(file.getvalue(), file.name)
+    # Web crawler
+    st.markdown("---")
+    st.markdown("### 🕷️ Web Crawler")
+    crawl_url = st.text_input("Crawl from URL", placeholder="https://example.com/wiki")
+    max_pages = st.number_input("Max pages", min_value=1, value=5)
+    
+    if st.button("🧠 Ingest All", type="primary", use_container_width=True):
+        count = 0
+        for file in uploaded_files:
+            if file.name.lower().endswith(('.jpg', '.jpeg', '.png')):
+                # Image analysis
+                result = analyze_image(file.getvalue(), deepseek_key)
+                st.session_state.kg.add_document(result, file.name, deepseek_key)
+            elif file.name.lower().endswith(('.wav', '.mp3')):
+                # Audio transcription
+                text, err = transcribe_audio(file.getvalue(), groq_key)
+                if text:
                     st.session_state.kg.add_document(text, file.name, deepseek_key)
-                    st.session_state.documents.append({"name": file.name, "text": text[:300]})
-                    count += 1
-                
-                if website_url:
-                    text = read_website(website_url)
-                    st.session_state.kg.add_document(text, website_url, deepseek_key)
-                    st.session_state.documents.append({"name": website_url, "text": text[:300]})
-                    count += 1
-                
-                st.success(f"✅ Ingested {count} documents!")
+            else:
+                # Text/PDF
+                text = ingest_file(file.getvalue(), file.name)
+                st.session_state.kg.add_document(text, file.name, deepseek_key)
+            count += 1
+        
+        if website_url:
+            text = read_website(website_url)
+            st.session_state.kg.add_document(text, website_url, deepseek_key)
+            count += 1
+        
+        if crawl_url:
+            crawler = WebCrawler(max_pages=int(max_pages))
+            pages = crawler.crawl_and_learn(crawl_url, st.session_state.kg, deepseek_key)
+            count += pages
+        
+        st.success(f"✅ Ingested {count} items!")
     
     st.markdown("---")
-    st.markdown("### 💾 Save/Load")
-    if st.button("📤 Export Knowledge Graph", use_container_width=True):
-        graph_json = st.session_state.kg.export_graph()
-        st.download_button("Download Graph", graph_json, "coreknow_graph.json", "application/json")
-    
-    uploaded_graph = st.file_uploader("Import Knowledge Graph", type=["json"])
-    if uploaded_graph:
-        graph_json = uploaded_graph.getvalue().decode()
-        st.session_state.kg.import_graph(graph_json)
-        st.success("✅ Knowledge graph imported!")
+    st.markdown("### 🗄️ Memory")
+    mem_col1, mem_col2 = st.columns(2)
+    with mem_col1:
+        if st.button("💾 Save Memory", use_container_width=True):
+            st.session_state.memory.save()
+            st.success("Saved!")
+    with mem_col2:
+        if st.button("📂 Load Memory", use_container_width=True):
+            st.session_state.memory.load()
+            st.success("Loaded!")
 
 # Main area
-tab1, tab2, tab3 = st.tabs(["📚 Knowledge Base", "💬 Ask CoreKnow", "📊 Insights"])
+tab1, tab2, tab3, tab4 = st.tabs(["📚 Knowledge", "💬 Ask", "🎨 Multimodal", "📊 Insights"])
 
 with tab1:
     stats = st.session_state.kg.get_stats()
@@ -86,34 +115,23 @@ with tab1:
         st.metric("Concepts", stats["concepts"])
     with col3:
         st.metric("Connections", stats["edges"])
-    
-    if st.session_state.documents:
-        st.markdown("### Recent Documents")
-        for doc in st.session_state.documents[-10:]:
-            with st.expander(f"📄 {doc['name']}"):
-                st.caption(doc['text'][:200] + "...")
-    else:
-        st.info("Feed CoreKnow some knowledge to begin.")
 
 with tab2:
     st.markdown("### 💬 Ask CoreKnow")
-    question = st.text_input("Ask anything", placeholder="e.g., What did you learn about...")
+    question = st.text_input("Ask anything", placeholder="e.g., What did you learn?")
     
     if question:
-        with st.spinner("CoreKnow is thinking..."):
-            # Search knowledge graph
+        with st.spinner("Thinking..."):
             results = st.session_state.kg.query(question)
             
-            # Also try DeepSeek for reasoning
             if deepseek_key:
-                headers = {"Authorization": f"Bearer {deepseek_key}", "Content-Type": "application/json"}
-                # Get all concepts as context
                 concepts = st.session_state.kg.get_all_concepts()[:50]
-                context = f"CoreKnow knows about: {', '.join(concepts)}"
+                context = f"CoreKnow knows: {', '.join(concepts)}"
+                headers = {"Authorization": f"Bearer {deepseek_key}", "Content-Type": "application/json"}
                 payload = {
                     "model": "deepseek-chat",
                     "messages": [
-                        {"role": "system", "content": f"You are CoreKnow, a self-learning AI. Based on your knowledge graph, answer questions. {context}"},
+                        {"role": "system", "content": f"You are CoreKnow. {context}"},
                         {"role": "user", "content": question}
                     ],
                     "max_tokens": 500
@@ -123,44 +141,58 @@ with tab2:
                     if r.status_code == 200:
                         answer = r.json()["choices"][0]["message"]["content"]
                         st.write(answer)
+                        
+                        # Text-to-speech
+                        if st.button("🔊 Listen"):
+                            audio_bytes, err = text_to_speech(answer)
+                            if audio_bytes:
+                                st.audio(audio_bytes, format="audio/mp3")
                 except:
                     pass
             
-            if results:
-                st.markdown("### Related Concepts")
-                for res in results[:10]:
-                    st.markdown(f"🔗 **{res['concept']}** — {res['relationship']}")
-            elif not deepseek_key:
-                st.info("No direct match. Feed CoreKnow more knowledge.")
-            
-            # Feedback loop
-            st.markdown("---")
-            st.markdown("### Was this helpful?")
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("👍 Helpful", key="helpful"):
-                    st.session_state.feedback.append({"question": question, "helpful": True})
-                    st.success("Thanks! CoreKnow will improve.")
-            with col2:
-                if st.button("👎 Not helpful", key="not_helpful"):
-                    st.session_state.feedback.append({"question": question, "helpful": False})
-                    st.info("CoreKnow will learn from this.")
+            # Store in memory
+            st.session_state.memory.add_short_term({"type": "question", "content": question})
 
 with tab3:
-    st.markdown("### 📊 CoreKnow Insights")
-    
-    # Feedback stats
-    total_feedback = len(st.session_state.feedback)
-    helpful = sum(1 for f in st.session_state.feedback if f["helpful"])
+    st.markdown("### 🎨 Multimodal Understanding")
     
     col1, col2 = st.columns(2)
     with col1:
-        st.metric("Total Feedback", total_feedback)
+        st.markdown("#### 📸 Image Analysis")
+        img_file = st.file_uploader("Upload image", type=["jpg", "jpeg", "png"])
+        if img_file:
+            st.image(img_file, width=200)
+            if st.button("Analyze Image"):
+                result = analyze_image(img_file.getvalue(), deepseek_key)
+                st.write(result)
+    
+    with col2:
+        st.markdown("#### 🎤 Audio Transcription")
+        audio_file = st.file_uploader("Upload audio", type=["wav", "mp3"])
+        if audio_file:
+            st.audio(audio_file)
+            if st.button("Transcribe"):
+                text, err = transcribe_audio(audio_file.getvalue(), groq_key)
+                if text:
+                    st.write(text)
+                else:
+                    st.warning(err)
+
+with tab4:
+    st.markdown("### 📊 CoreKnow Insights")
+    
+    total_feedback = len(st.session_state.feedback)
+    helpful = sum(1 for f in st.session_state.feedback if f.get("helpful", False))
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Feedback", total_feedback)
     with col2:
         st.metric("Helpful Rate", f"{(helpful/total_feedback*100):.0f}%" if total_feedback > 0 else "N/A")
+    with col3:
+        st.metric("Short-term Memories", len(st.session_state.memory.short_term))
     
-    # Concept list
     concepts = st.session_state.kg.get_all_concepts()
     if concepts:
-        st.markdown("### All Concepts CoreKnow Has Learned")
+        st.markdown("### Learned Concepts")
         st.markdown(", ".join(f"`{c}`" for c in concepts[:100]))
