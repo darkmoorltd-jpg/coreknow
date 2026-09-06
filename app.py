@@ -31,7 +31,10 @@ if "brain" not in st.session_state:
 with st.sidebar:
     st.title("🧠 Brain Status")
     status = st.session_state.brain.get_status()
-    st.success(f"✅ {status['model']}")
+    if status["loaded"]:
+        st.success(f"✅ {status['model']}")
+    else:
+        st.warning("Add deepseek api_key to secrets")
     
     st.markdown("---")
     st.title("📥 Feed CoreKnow")
@@ -47,13 +50,13 @@ with st.sidebar:
                 count += 1
             st.success(f"✅ {count} files ingested!")
 
-# Main
-tab1, tab2 = st.tabs(["💬 Ask", "📚 Knowledge"])
+# Main area
+tab1, tab2 = st.tabs(["💬 Ask CoreKnow", "📚 Knowledge"])
 
 with tab1:
     question = st.text_input("Ask CoreKnow", placeholder="What is CoreKnow?")
     if question:
-        with st.spinner("CoreKnow is thinking with its own brain..."):
+        with st.spinner("CoreKnow is thinking..."):
             answer = st.session_state.brain.ask(question)
             st.write(answer)
 
@@ -66,3 +69,8 @@ with tab2:
         st.metric("Concepts", stats["concepts"])
     with col3:
         st.metric("Connections", stats["edges"])
+    
+    concepts = st.session_state.kg.get_all_concepts()
+    if concepts:
+        st.markdown("### Learned Concepts")
+        st.markdown(", ".join(f"`{c}`" for c in concepts[:100]))
