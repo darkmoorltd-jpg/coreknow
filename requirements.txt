@@ -11,3 +11,6 @@ PyPDF2
 beautifulsoup4
 plotly
 gTTS
+torch
+transformers
+accelerate
