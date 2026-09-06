@@ -12,6 +12,7 @@ beautifulsoup4
 plotly
 gTTS
 torch
+torchvision
 transformers
 peft
 bitsandbytes
