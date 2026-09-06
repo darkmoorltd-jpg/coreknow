@@ -10,6 +10,7 @@ from utils.web_crawler import WebCrawler
 from utils.memory import MemorySystem
 from utils.self_improvement import SelfImprovement
 from utils.auto_learner import AutoLearner
+from utils.reasoning import ReasoningEngine
 
 st.set_page_config(page_title="CoreKnow", page_icon="🧠", layout="wide")
 
@@ -36,13 +37,14 @@ if "improvement" not in st.session_state:
     st.session_state.improvement = SelfImprovement()
 if "auto_learner" not in st.session_state:
     st.session_state.auto_learner = AutoLearner(st.session_state.kg, "")
-if "documents" not in st.session_state:
-    st.session_state.documents = []
+if "reasoning" not in st.session_state:
+    st.session_state.reasoning = ReasoningEngine(st.session_state.kg, "")
 
 # Get API keys
 try:
     deepseek_key = st.secrets["deepseek"]["api_key"]
     st.session_state.auto_learner.llm_api_key = deepseek_key
+    st.session_state.reasoning.llm_api_key = deepseek_key
 except:
     deepseek_key = ""
 
@@ -63,11 +65,10 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("### 🤖 Auto‑Learn")
-    topics_input = st.text_area("Topics to learn (one per line)", placeholder="Quantum physics\nMachine learning\nAfrican history")
+    topics_input = st.text_area("Topics to learn", placeholder="Quantum physics\nMachine learning\nAfrican history")
     
     if st.button("🧠 Ingest & Learn", type="primary", use_container_width=True):
         count = 0
-        # Process uploads
         for file in uploaded_files:
             if file.name.lower().endswith(('.jpg', '.jpeg', '.png')):
                 result = analyze_image(file.getvalue(), deepseek_key)
@@ -81,13 +82,11 @@ with st.sidebar:
                 st.session_state.kg.add_document(text, file.name, deepseek_key)
             count += 1
         
-        # Process website
         if website_url:
             text = read_website(website_url)
             st.session_state.kg.add_document(text, website_url, deepseek_key)
             count += 1
         
-        # Auto-learn topics
         if topics_input:
             topics = [t.strip() for t in topics_input.split("\n") if t.strip()]
             learned = st.session_state.auto_learner.auto_expand_knowledge(topics)
@@ -96,7 +95,7 @@ with st.sidebar:
         st.success(f"✅ Learned {count} items!")
 
 # Main area
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["📚 Knowledge", "💬 Ask", "🎨 Multimodal", "🔍 Gaps", "📊 Insights"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📚 Knowledge", "💬 Ask", "🧠 Reason", "🎨 Multimodal", "🔍 Gaps", "📊 Insights"])
 
 with tab1:
     stats = st.session_state.kg.get_stats()
@@ -107,11 +106,6 @@ with tab1:
         st.metric("Concepts", stats["concepts"])
     with col3:
         st.metric("Connections", stats["edges"])
-    
-    concepts = st.session_state.kg.get_all_concepts()
-    if concepts:
-        st.markdown("### Learned Concepts")
-        st.markdown(", ".join(f"`{c}`" for c in concepts[:200]))
 
 with tab2:
     st.markdown("### 💬 Ask CoreKnow")
@@ -146,7 +140,6 @@ with tab2:
                 except:
                     pass
             
-            # Feedback loop
             st.markdown("---")
             st.markdown("### Was this helpful?")
             col1, col2 = st.columns(2)
@@ -160,6 +153,53 @@ with tab2:
                     st.info("CoreKnow will learn from this gap.")
 
 with tab3:
+    st.markdown("### 🧠 Reasoning Engine")
+    st.markdown("CoreKnow can think step by step, generate hypotheses, and solve complex problems.")
+    
+    reasoning_type = st.selectbox("Reasoning Type", [
+        "Chain of Thought",
+        "Solve Problem",
+        "Generate Hypothesis",
+        "Causal Inference",
+        "Cross-Domain Transfer"
+    ])
+    
+    if reasoning_type == "Chain of Thought":
+        q = st.text_area("Problem to reason through", placeholder="e.g., If a train travels at 60 mph, how long to go 180 miles?")
+        if st.button("Reason", type="primary"):
+            result = st.session_state.reasoning.chain_of_thought(q)
+            st.write(result)
+    
+    elif reasoning_type == "Solve Problem":
+        q = st.text_area("Problem to solve", placeholder="e.g., How can we reduce malaria in rural Africa?")
+        if st.button("Solve", type="primary"):
+            result = st.session_state.reasoning.solve_problem(q)
+            st.write(result)
+    
+    elif reasoning_type == "Generate Hypothesis":
+        q = st.text_area("Observation", placeholder="e.g., Plants grow faster near the river")
+        if st.button("Generate Hypotheses", type="primary"):
+            hypotheses = st.session_state.reasoning.generate_hypothesis(q)
+            if hypotheses:
+                for i, h in enumerate(hypotheses):
+                    st.markdown(f"**Hypothesis {i+1}:** {h}")
+    
+    elif reasoning_type == "Causal Inference":
+        cause = st.text_input("Cause", placeholder="e.g., Rain")
+        effect = st.text_input("Effect", placeholder="e.g., Crop growth")
+        if st.button("Analyze Causality", type="primary"):
+            result = st.session_state.reasoning.causal_inference(cause, effect)
+            st.write(result)
+    
+    elif reasoning_type == "Cross-Domain Transfer":
+        source = st.text_input("Source Domain", placeholder="e.g., Physics")
+        target = st.text_input("Target Domain", placeholder="e.g., Economics")
+        concept = st.text_input("Concept", placeholder="e.g., Entropy")
+        if st.button("Transfer Knowledge", type="primary"):
+            result = st.session_state.reasoning.cross_domain_transfer(source, target, concept)
+            st.write(result)
+
+with tab4:
     st.markdown("### 🎨 Multimodal")
     col1, col2 = st.columns(2)
     with col1:
@@ -178,10 +218,8 @@ with tab3:
                 if text:
                     st.write(text)
 
-with tab4:
+with tab5:
     st.markdown("### 🔍 Knowledge Gaps")
-    st.markdown("CoreKnow tracks what it doesn't know and suggests what to learn next.")
-    
     gaps = st.session_state.improvement.identify_gaps()
     if gaps:
         for topic, count in gaps:
@@ -191,7 +229,6 @@ with tab4:
             </div>
             """, unsafe_allow_html=True)
         
-        # Auto-learn button
         gap_topics = [g[0] for g in gaps]
         if st.button("🤖 Auto‑Learn These Topics", type="primary"):
             with st.spinner("CoreKnow is learning..."):
@@ -199,27 +236,21 @@ with tab4:
                 st.success("✅ CoreKnow filled knowledge gaps!")
                 st.rerun()
     else:
-        st.info("No knowledge gaps yet. Ask questions to help CoreKnow learn.")
+        st.info("No knowledge gaps yet.")
 
-with tab5:
+with tab6:
     st.markdown("### 📊 CoreKnow Insights")
     
     improve_stats = st.session_state.improvement.get_stats()
     kg_stats = st.session_state.kg.get_stats()
+    reason_stats = st.session_state.reasoning.get_reasoning_stats()
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Feedback", improve_stats["total_feedback"])
-    with col2:
-        st.metric("Gaps", improve_stats["knowledge_gaps"])
-    with col3:
-        st.metric("Improvements", improve_stats["improvements"])
-    with col4:
         st.metric("Concepts", kg_stats["concepts"])
-    
-    # Learning plan
-    plan = st.session_state.improvement.generate_learning_plan()
-    if plan:
-        st.markdown("### 📋 Learning Plan")
-        for item in plan:
-            st.markdown(f"**{item['topic']}** — {item['reason']}")
+    with col2:
+        st.metric("Feedback", improve_stats["total_feedback"])
+    with col3:
+        st.metric("Gaps", improve_stats["knowledge_gaps"])
+    with col4:
+        st.metric("Reasoning", reason_stats["total_reasoning"])
