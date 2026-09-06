@@ -11,9 +11,3 @@ PyPDF2
 beautifulsoup4
 plotly
 gTTS
-torch
-torchvision
-transformers
-peft
-bitsandbytes
-accelerate
