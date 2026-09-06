@@ -22,7 +22,8 @@ st.set_page_config(page_title="CoreKnow", page_icon="🧠", layout="wide")
 st.markdown("""
 <style>
     .stApp { background: radial-gradient(ellipse at 20% 50%, #0d1b2a 0%, #0a0e17 70%); color: #e0e0e0; }
-    header, footer { visibility: hidden; }
+    header { visibility: hidden; }
+    [data-testid="stSidebar"] { background: #111827; border-right: 1px solid #1f2a44; }
     .title { font-size: 3rem; font-weight: 900; text-align: center; background: linear-gradient(135deg, #00e5ff, #7c4dff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .subtitle { text-align: center; color: #8892b0; margin-bottom: 2rem; }
     .stButton > button { background: linear-gradient(135deg, #00e5ff, #7c4dff); color: white; font-weight: bold; }
