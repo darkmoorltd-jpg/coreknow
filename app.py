@@ -2,9 +2,9 @@
 import streamlit as st
 import os
 import json
-from utils.ingestion import ingest_file, read_website
+import requests
+from utils.pdf_eater import PDFEater
 from utils.knowledge_graph import KnowledgeGraph
-from utils.coreknow_brain import CoreKnowBrain
 
 st.set_page_config(page_title="CoreKnow", page_icon="🧠", layout="wide")
 
@@ -19,58 +19,84 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="main-title">🧠 COREKNOW</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Self‑Learning AI With Its Own Brain</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Feed it books. It learns everything.</div>', unsafe_allow_html=True)
 
 # Initialize
+if "eater" not in st.session_state:
+    st.session_state.eater = PDFEater()
 if "kg" not in st.session_state:
     st.session_state.kg = KnowledgeGraph()
-if "brain" not in st.session_state:
-    st.session_state.brain = CoreKnowBrain()
+
+# Get DeepSeek key from secrets only
+deepseek_key = st.secrets.get("deepseek", {}).get("api_key", "")
 
 # Sidebar
 with st.sidebar:
-    st.title("🧠 Brain Status")
-    status = st.session_state.brain.get_status()
-    if status["loaded"]:
-        st.success(f"✅ {status['model']}")
-    else:
-        st.warning("Add deepseek api_key to secrets")
+    st.title("📚 Feed CoreKnow")
     
-    st.markdown("---")
-    st.title("📥 Feed CoreKnow")
-    
-    uploaded_files = st.file_uploader("Upload PDF/TXT", type=["pdf", "txt"], accept_multiple_files=True)
+    uploaded_files = st.file_uploader("Upload PDF Books", type=["pdf"], accept_multiple_files=True)
     
     if uploaded_files:
-        if st.button("🧠 Ingest", type="primary", use_container_width=True):
-            count = 0
-            for file in uploaded_files:
-                text = ingest_file(file.getvalue(), file.name)
-                st.session_state.kg.add_document(text, file.name)
-                count += 1
-            st.success(f"✅ {count} files ingested!")
+        if st.button("🧠 EAT PDFs", type="primary", use_container_width=True):
+            with st.spinner("CoreKnow is eating..."):
+                for file in uploaded_files:
+                    doc = st.session_state.eater.eat(file.getvalue(), file.name)
+                st.success(f"✅ Ate {len(uploaded_files)} books!")
+                st.rerun()
+    
+    stats = st.session_state.eater.get_stats()
+    st.markdown("---")
+    st.markdown("### 📊 Knowledge Stats")
+    st.metric("Books Eaten", stats["documents"])
+    st.metric("Text Chunks", stats["chunks"])
+    st.metric("Pages Read", stats["pages"])
 
 # Main area
-tab1, tab2 = st.tabs(["💬 Ask CoreKnow", "📚 Knowledge"])
+tab1, tab2 = st.tabs(["💬 Ask CoreKnow", "📚 Library"])
 
 with tab1:
-    question = st.text_input("Ask CoreKnow", placeholder="What is CoreKnow?")
+    st.markdown("### Ask about anything you've fed CoreKnow")
+    question = st.text_input("Ask about the books", placeholder="e.g., What is Newton's first law?")
+    
     if question:
         with st.spinner("CoreKnow is thinking..."):
-            answer = st.session_state.brain.ask(question)
-            st.write(answer)
+            context = st.session_state.eater.get_context(question)
+            
+            if context and deepseek_key:
+                headers = {"Authorization": f"Bearer {deepseek_key}", "Content-Type": "application/json"}
+                payload = {
+                    "model": "deepseek-chat",
+                    "messages": [
+                        {"role": "system", "content": f"You are CoreKnow. Answer based on the books you've read:\n\n{context[:2000]}"},
+                        {"role": "user", "content": question}
+                    ],
+                    "max_tokens": 500
+                }
+                try:
+                    r = requests.post("https://api.deepseek.com/v1/chat/completions", headers=headers, json=payload, timeout=30)
+                    if r.status_code == 200:
+                        answer = r.json()["choices"][0]["message"]["content"]
+                        st.write(answer)
+                        st.markdown("---")
+                        st.caption("📖 Based on books CoreKnow has read")
+                except:
+                    st.error("Error getting answer.")
+            elif context and not deepseek_key:
+                st.warning("Add DeepSeek API key to secrets to enable Q&A.")
+                # Show relevant text anyway
+                st.markdown("### Relevant Text Found:")
+                st.markdown(context[:1000])
+            else:
+                st.info("CoreKnow hasn't read about this yet. Feed it more books!")
 
 with tab2:
-    stats = st.session_state.kg.get_stats()
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Documents", stats["documents"])
-    with col2:
-        st.metric("Concepts", stats["concepts"])
-    with col3:
-        st.metric("Connections", stats["edges"])
+    st.markdown("### 📚 Books CoreKnow Has Eaten")
     
-    concepts = st.session_state.kg.get_all_concepts()
-    if concepts:
-        st.markdown("### Learned Concepts")
-        st.markdown(", ".join(f"`{c}`" for c in concepts[:100]))
+    if st.session_state.eater.documents:
+        for doc in st.session_state.eater.documents:
+            with st.expander(f"📖 {doc['name']}"):
+                st.markdown(f"**Pages:** {doc['num_pages']}")
+                st.markdown(f"**Chunks:** {doc['num_chunks']}")
+                st.caption(doc['text'][:300] + "...")
+    else:
+        st.info("No books yet. Upload PDFs in the sidebar.")
