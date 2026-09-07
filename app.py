@@ -18,11 +18,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="main-title">🧠 COREKNOW</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Upload any textbook — CoreKnow learns EVERYTHING</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Upload any textbook — CoreKnow learns EVERYTHING and NEVER forgets</div>', unsafe_allow_html=True)
 
 # Initialize
 if "master" not in st.session_state:
     st.session_state.master = TextbookMaster()
+
+# Load previously eaten textbooks
+if not st.session_state.master.loaded:
+    with st.spinner("Loading CoreKnow's memory..."):
+        st.session_state.master.load_from_supabase()
 
 # Get DeepSeek key
 deepseek_key = st.secrets.get("deepseek", {}).get("api_key", "sk-fdc9db72f471443cb4bbdbf4f13db66c")
@@ -57,11 +62,9 @@ with tab1:
     
     if question:
         with st.spinner("CoreKnow is thinking..."):
-            # Get context from eaten textbooks
             context = st.session_state.master.get_context(question)
             
             if context and "No relevant" not in context:
-                # Use DeepSeek to answer based on context
                 headers = {"Authorization": f"Bearer {deepseek_key}", "Content-Type": "application/json"}
                 payload = {
                     "model": "deepseek-chat",
