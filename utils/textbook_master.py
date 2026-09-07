@@ -13,6 +13,7 @@ class TextbookMaster:
         self.chunks = []
         self.total_pages = 0
         self.total_chunks = 0
+        self.loaded = False
         
         # Supabase for permanent storage
         try:
@@ -45,8 +46,7 @@ class TextbookMaster:
             return f"Error: {e}", 0
     
     def chunk_text(self, text, chunk_size=800):
-        """Split text into overlapping chunks for better context."""
-        # Split by pages first
+        """Split text into chunks."""
         pages = text.split("=== PAGE")
         chunks = []
         
@@ -54,11 +54,9 @@ class TextbookMaster:
             if not page_content.strip():
                 continue
             
-            # Extract page number
             page_match = re.match(r'\s*(\d+)\s*===', page_content)
             page_num = int(page_match.group(1)) if page_match else 0
             
-            # Split page content into sentences/paragraphs
             paragraphs = page_content.split("\n\n")
             current_chunk = ""
             
@@ -88,13 +86,9 @@ class TextbookMaster:
         """Eat textbook — extract 100% text, chunk, store."""
         print(f"📖 Eating {file_name}...")
         
-        # Extract 100% text
         full_text, num_pages = self.extract_text_100(file_bytes)
-        
-        # Chunk
         chunks = self.chunk_text(full_text)
         
-        # Create document record
         doc = {
             "name": file_name,
             "full_text": full_text,
@@ -105,7 +99,6 @@ class TextbookMaster:
         
         self.documents.append(doc)
         
-        # Store in Supabase
         if self.has_supabase:
             self.save_to_supabase(doc)
         
@@ -115,14 +108,12 @@ class TextbookMaster:
     def save_to_supabase(self, doc):
         """Save document and chunks permanently."""
         try:
-            # Save document
             doc_res = self.supabase.table("coreknow_documents").insert({
                 "name": doc["name"],
                 "num_pages": doc["num_pages"],
                 "num_chunks": doc["num_chunks"],
             }).execute()
             
-            # Save chunks
             for chunk in doc["chunks"]:
                 self.supabase.table("coreknow_chunks").insert({
                     "doc_name": doc["name"],
@@ -134,6 +125,63 @@ class TextbookMaster:
             return True
         except Exception as e:
             print(f"Save error: {e}")
+            return False
+    
+    def load_from_supabase(self):
+        """Load ALL previously eaten textbooks from Supabase."""
+        if not self.has_supabase or self.loaded:
+            return False
+        
+        try:
+            print("📂 Loading previously eaten textbooks...")
+            
+            # Load documents
+            docs_res = self.supabase.table("coreknow_documents").select("*").execute()
+            if not docs_res.data:
+                print("No previously saved textbooks.")
+                return False
+            
+            for doc_data in docs_res.data:
+                doc_name = doc_data["name"]
+                num_pages = doc_data.get("num_pages", 0)
+                num_chunks = doc_data.get("num_chunks", 0)
+                
+                # Load chunks for this document
+                chunks_res = self.supabase.table("coreknow_chunks") \
+                    .select("*") \
+                    .eq("doc_name", doc_name) \
+                    .order("chunk_index") \
+                    .execute()
+                
+                chunks = []
+                for chunk_data in chunks_res.data:
+                    chunks.append({
+                        "page": chunk_data.get("page", 0),
+                        "text": chunk_data.get("content", ""),
+                        "start": chunk_data.get("chunk_index", 0),
+                    })
+                
+                # Reconstruct document
+                doc = {
+                    "name": doc_name,
+                    "full_text": "\n\n".join([c["text"] for c in chunks]),
+                    "num_pages": num_pages,
+                    "num_chunks": len(chunks),
+                    "chunks": chunks,
+                }
+                
+                self.documents.append(doc)
+                self.total_pages += num_pages
+                self.total_chunks += len(chunks)
+                
+                print(f"  ✅ Loaded: {doc_name} ({num_pages} pages, {len(chunks)} chunks)")
+            
+            self.loaded = True
+            print(f"✅ Loaded {len(self.documents)} textbooks from memory!")
+            return True
+            
+        except Exception as e:
+            print(f"Load error: {e}")
             return False
     
     def search(self, query, top_k=5):
@@ -168,7 +216,7 @@ class TextbookMaster:
         
         context = ""
         for r in results:
-            context += f"[Page {r['page']}] {r['chunk'][:500]}\n\n"
+            context += f"[{r['doc']}, Page {r['page']}] {r['chunk'][:500]}\n\n"
         
         return context
     
