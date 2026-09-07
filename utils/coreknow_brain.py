@@ -8,26 +8,21 @@ import shutil
 
 class CoreKnowBrain:
     def __init__(self):
-        # GitHub Release URL - reliable
         self.brain_url = "https://github.com/darkmoorltd-jpg/coreknow/releases/download/v1.0-distilgpt2/distilgpt2-coreknow.zip"
         self.model_loaded = False
         self.model = None
         self.tokenizer = None
     
     def load_brain(self):
-        """Download from GitHub Release (works on Streamlit Cloud)."""
         try:
-            print("📥 Downloading brain from GitHub Release...")
+            print("Downloading brain...")
             r = requests.get(self.brain_url, timeout=120)
             
             if r.status_code != 200:
-                print(f"Download failed: {r.status_code}")
                 return False
             
             zip_data = r.content
-            print(f"Downloaded: {len(zip_data) / 1024 / 1024:.1f} MB")
             
-            # Extract
             if os.path.exists("/tmp/coreknow-brain"):
                 shutil.rmtree("/tmp/coreknow-brain")
             
@@ -35,10 +30,7 @@ class CoreKnowBrain:
             with zipfile.ZipFile(zip_buffer, 'r') as zip_ref:
                 zip_ref.extractall("/tmp/coreknow-brain")
             
-            print("✅ Extracted")
-            
-            # Load model
-            print("🧠 Loading DistilGPT-2...")
+            print("Loading model...")
             from transformers import AutoModelForCausalLM, AutoTokenizer
             import torch
             
@@ -48,12 +40,12 @@ class CoreKnowBrain:
                 "/tmp/coreknow-brain",
                 low_cpu_mem_usage=True,
             )
+            self.model.eval()
             
             self.model_loaded = True
-            print("✅ Brain loaded!")
             return True
         except Exception as e:
-            print(f"Failed: {e}")
+            print(f"Load failed: {e}")
             return False
     
     def ask(self, question):
@@ -62,21 +54,33 @@ class CoreKnowBrain:
                 return "Brain failed to load."
         
         try:
-            prompt = f"Question: {question}\nAnswer: "
-            inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, max_length=128)
-            
             import torch
+            
+            prompt = f"Question: {question}\nAnswer:"
+            
+            inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, max_length=50)
+            
             with torch.no_grad():
                 outputs = self.model.generate(
                     **inputs,
-                    max_new_tokens=100,
-                    temperature=0.7,
+                    max_new_tokens=50,
+                    temperature=0.9,
                     do_sample=True,
+                    top_p=0.95,
                     pad_token_id=self.tokenizer.eos_token_id,
+                    eos_token_id=self.tokenizer.eos_token_id,
                 )
             
             answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-            answer = answer.split("Answer:")[-1].strip()
+            
+            # Extract answer part
+            if "Answer:" in answer:
+                answer = answer.split("Answer:")[-1].strip()
+            
+            # If answer is empty or too short, return fallback
+            if not answer or len(answer) < 2:
+                return "I am CoreKnow, a self-learning AI from Nigeria."
+            
             return answer
         except Exception as e:
             return f"Error: {e}"
