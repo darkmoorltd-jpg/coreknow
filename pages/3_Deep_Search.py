@@ -5,6 +5,7 @@ import json
 from typing import List, Dict
 from bs4 import BeautifulSoup
 import feedparser
+import re
 from sentence_transformers import SentenceTransformer
 from supabase import create_client
 
@@ -54,6 +55,11 @@ class VectorStorage:
             }).execute()
         return doc_id
 
+# Helper to clean HTML from Wikipedia snippets
+def clean_html(raw_html):
+    soup = BeautifulSoup(raw_html, "html.parser")
+    return soup.get_text(separator=" ")
+
 # Deep search engine
 class DeepSearchEngine:
     def __init__(self):
@@ -73,7 +79,7 @@ class DeepSearchEngine:
             r = requests.get(self.wikipedia, params=params, headers={"User-Agent":self.ua}, timeout=15)
             if r.status_code == 200:
                 results = r.json().get("query",{}).get("search",[])
-                return [{"title":x["title"],"snippet":x.get("snippet",""),"source":"Wikipedia"} for x in results]
+                return [{"title":x["title"],"snippet":clean_html(x.get("snippet","")),"source":"Wikipedia"} for x in results]
         except:
             pass
         return []
@@ -98,7 +104,17 @@ class DeepSearchEngine:
             r = requests.get(self.arxiv, params=params, headers={"User-Agent":self.ua}, timeout=15)
             if r.status_code == 200:
                 feed = feedparser.parse(r.text)
-                return [{"title":e.title,"summary":e.summary,"link":e.link,"source":"ArXiv"} for e in feed.entries[:limit]]
+                results = []
+                for e in feed.entries[:limit]:
+                    # Extract summary and clean
+                    summary = re.sub('<.*?>', '', e.summary) if e.summary else ""
+                    results.append({
+                        "title": e.title,
+                        "summary": summary[:300],
+                        "link": e.link,
+                        "source":"ArXiv"
+                    })
+                return results
         except:
             pass
         return []
@@ -131,7 +147,7 @@ class DeepSearchEngine:
             r = requests.get(self.semantic, params=params, headers={"User-Agent":self.ua}, timeout=15)
             if r.status_code == 200:
                 data = r.json().get("data",[])
-                return [{"title":p.get("title",""),"abstract":p.get("abstract",""),"url":p.get("url",""),"source":"Semantic Scholar"} for p in data[:limit]]
+                return [{"title":p.get("title",""),"abstract":p.get("abstract","")[:300],"url":p.get("url",""),"source":"Semantic Scholar"} for p in data[:limit]]
         except:
             pass
         return []
@@ -169,24 +185,47 @@ class DeepSearchEngine:
             pass
         return []
 
+    def fetch_wikipedia_extract(self, title):
+        """Fetch full plain text extract for a Wikipedia title."""
+        try:
+            params = {
+                "action":"query",
+                "prop":"extracts",
+                "explaintext":True,
+                "titles":title,
+                "format":"json"
+            }
+            r = requests.get(self.wikipedia, params=params, headers={"User-Agent":self.ua}, timeout=15)
+            if r.status_code == 200:
+                pages = r.json().get("query",{}).get("pages",{})
+                for pid in pages:
+                    return pages[pid].get("extract","")
+        except:
+            pass
+        return ""
+
     def deep_search(self, query):
+        """Return search results from all sources."""
+        wiki_results = self.search_wikipedia(query)
+        arxiv_results = self.search_arxiv(query)
         return {
-            "wikipedia": self.search_wikipedia(query),
+            "wikipedia": wiki_results,
             "duckduckgo": self.search_duckduckgo(query),
-            "arxiv": self.search_arxiv(query),
+            "arxiv": arxiv_results,
             "openalex": self.search_openalex(query),
             "crossref": self.search_crossref(query),
             "semantic_scholar": self.search_semantic(query),
             "pubmed_ids": self.search_pubmed(query),
             "wikidata": self.search_wikidata(query),
-            "github": self.search_github(query)
+            "github": self.search_github(query),
+            "wikipedia_extracts": [self.fetch_wikipedia_extract(w["title"]) for w in wiki_results[:3] if w.get("title")]
         }
 
 # Streamlit page
 st.set_page_config(page_title="Deep Search & Learn", page_icon="🔍", layout="wide")
 
 st.title("🔍 Deep Search & Learn")
-st.markdown("Search across 9+ sources and automatically store the knowledge in CoreKnow's permanent memory.")
+st.markdown("Search across 9+ sources, read full content from Wikipedia, and automatically store everything permanently.")
 
 query = st.text_input("Enter a topic to search", placeholder="e.g., quantum mechanics")
 
@@ -198,52 +237,107 @@ if st.button("Search & Learn", type="primary"):
             engine = DeepSearchEngine()
             results = engine.deep_search(query)
 
+        # Display results cleanly
         st.subheader("Results for '{}'".format(query))
-        total_items = sum(len(v) for v in results.values() if isinstance(v, list))
-        st.info("Found {} items across {} sources.".format(total_items, len(results)))
 
-        # Display each source in an expander
-        for source, items in results.items():
-            if isinstance(items, list) and items:
-                with st.expander("{} ({} results)".format(source.replace('_',' ').title(), len(items))):
-                    for item in items:
-                        if isinstance(item, dict):
-                            title = item.get('title') or item.get('label') or item.get('name','')
-                            snippet = item.get('snippet') or item.get('summary') or item.get('abstract') or item.get('description','')
-                            link = item.get('url') or item.get('link','')
-                            doi = item.get('doi') or item.get('DOI','')
-                            line = "**{}**".format(title)
-                            if snippet:
-                                line += "\n" + snippet[:200]
-                            if link:
-                                line += "\n[Link]({})".format(link)
-                            if doi:
-                                line += "\nDOI: {}".format(doi)
-                            st.markdown(line)
-                        else:
-                            st.write(str(item))
-            elif source == 'pubmed_ids' and isinstance(items, list):
-                with st.expander("PubMed IDs ({})".format(len(items))):
-                    st.write(", ".join(items))
+        # Wikipedia
+        if results["wikipedia"]:
+            with st.expander("📚 Wikipedia ({} results)".format(len(results["wikipedia"])), expanded=True):
+                for r in results["wikipedia"]:
+                    st.markdown("**{}**".format(r["title"]))
+                    st.caption(r["snippet"])
+                    st.markdown("---")
+        else:
+            st.info("No Wikipedia results.")
 
-        # Store aggregated content
+        # DuckDuckGo
+        if results["duckduckgo"]:
+            with st.expander("🌐 DuckDuckGo ({} results)".format(len(results["duckduckgo"]))):
+                for r in results["duckduckgo"]:
+                    st.markdown("**{}**".format(r["title"]))
+                    st.write("{}".format(r.get("url","")))
+                    st.markdown("---")
+
+        # ArXiv
+        if results["arxiv"]:
+            with st.expander("📄 ArXiv ({} results)".format(len(results["arxiv"]))):
+                for r in results["arxiv"]:
+                    st.markdown("**{}**".format(r["title"]))
+                    st.caption(r["summary"])
+                    st.write("[Link]({})".format(r["link"]))
+                    st.markdown("---")
+
+        # OpenAlex
+        if results["openalex"]:
+            with st.expander("🎓 OpenAlex ({} results)".format(len(results["openalex"]))):
+                for r in results["openalex"]:
+                    st.markdown("**{}**".format(r["title"]))
+                    st.caption("DOI: {}".format(r["doi"]))
+                    st.markdown("---")
+
+        # Crossref
+        if results["crossref"]:
+            with st.expander("🔗 Crossref ({} results)".format(len(results["crossref"]))):
+                for r in results["crossref"]:
+                    st.markdown("**{}**".format(r["title"]))
+                    st.caption("DOI: {}".format(r["DOI"]))
+                    st.markdown("---")
+
+        # Semantic Scholar
+        if results["semantic_scholar"]:
+            with st.expander("🧠 Semantic Scholar ({} results)".format(len(results["semantic_scholar"]))):
+                for r in results["semantic_scholar"]:
+                    st.markdown("**{}**".format(r["title"]))
+                    st.caption(r["abstract"])
+                    st.write("[Link]({})".format(r["url"]))
+                    st.markdown("---")
+
+        # PubMed IDs
+        if results["pubmed_ids"]:
+            with st.expander("🩺 PubMed ({} IDs)".format(len(results["pubmed_ids"]))):
+                st.write(", ".join(results["pubmed_ids"]))
+
+        # Wikidata
+        if results["wikidata"]:
+            with st.expander("🌐 Wikidata ({} results)".format(len(results["wikidata"]))):
+                for r in results["wikidata"]:
+                    st.markdown("**{}** ({})".format(r["label"], r["id"]))
+                    st.caption(r["description"])
+                    st.markdown("---")
+
+        # GitHub
+        if results["github"]:
+            with st.expander("💻 GitHub ({} results)".format(len(results["github"]))):
+                for r in results["github"]:
+                    st.markdown("**{}**".format(r["name"]))
+                    st.caption(r["description"])
+                    st.write("[Link]({})".format(r["url"]))
+                    st.markdown("---")
+
+        # Store everything
         st.markdown("---")
         st.subheader("💾 Storing to CoreKnow's memory...")
         try:
+            vs = VectorStorage()
+            # Store cleaned search results as one document
             combined_text = "Deep search results for '{}'\n\n".format(query)
             for source, items in results.items():
+                if source == "wikipedia_extracts":
+                    continue  # already storing extracts separately below
                 if isinstance(items, list):
                     for item in items:
                         if isinstance(item, dict):
-                            combined_text += str(item.get('title','')) + " "
-                            combined_text += str(item.get('snippet', item.get('summary', item.get('description', item.get('abstract',''))))) + "\n"
+                            combined_text += str(item.get('title') or item.get('label') or item.get('name','')) + " "
+                            combined_text += str(item.get('snippet') or item.get('summary') or item.get('abstract') or item.get('description','')) + "\n"
                         else:
                             combined_text += str(item) + "\n"
                 else:
                     combined_text += str(items) + "\n"
-
-            vs = VectorStorage()
             doc_id = vs.store_document("deep_search_{}".format(query), "search", combined_text)
+            # Store each Wikipedia full extract as separate documents
+            for i, extract in enumerate(results["wikipedia_extracts"]):
+                if extract:
+                    vs.store_document("wiki_extract_{}_{}".format(query, i), "wikipedia", extract)
             st.success("✅ Knowledge stored permanently with document ID: {}".format(doc_id))
         except Exception as e:
             st.error("Failed to store: {}".format(e))
