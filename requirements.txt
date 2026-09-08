@@ -19,3 +19,5 @@ python-docx
 openpyxl
 python-pptx
 pandas
+feedparser
+pdfplumber
