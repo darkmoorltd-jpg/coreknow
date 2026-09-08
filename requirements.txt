@@ -18,16 +18,4 @@ accelerate
 python-docx
 openpyxl
 python-pptx
-epub2txt
-striprtf
-odfpy
-pytesseract
-whisper
-opencv-python-headless
-pysrt
-webvtt-py
-feedparser
-yaml
-toml
 pandas
-extract-msg
