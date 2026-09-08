@@ -19,5 +19,5 @@ python-docx
 openpyxl
 python-pptx
 pandas
+sentence-transformers
 feedparser
-pdfplumber
