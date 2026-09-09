@@ -8,7 +8,13 @@ faiss-cpu
 networkx
 matplotlib
 PyPDF2
+pdfplumber
 beautifulsoup4
 plotly
 gTTS
 rdkit
+feedparser
+sentence-transformers
+python-docx
+openpyxl
+python-pptx
