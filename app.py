@@ -6,6 +6,7 @@ import tempfile
 import requests
 import time
 from supabase import create_client
+from utils.advanced_multimodal import AdvancedMultiModalExtractor
 from utils.universal_ingestor import UniversalIngestor
 from utils.deep_search import DeepSearch
 
@@ -48,17 +49,21 @@ except:
 with st.sidebar:
     st.title("📥 Feed CoreKnow")
     uploaded_files = st.file_uploader("Upload ANY file (103+ formats)", type=None, accept_multiple_files=True)
-    if uploaded_files and st.button("🧠 Ingest Files", type="primary", use_container_width=True):
+    if uploaded_files and st.button("🧠 Ingest Files (Multimodal)", type="primary", use_container_width=True):
+        extractor = AdvancedMultiModalExtractor()
         for file in uploaded_files:
-            tmp_path = f"/tmp/{file.name}"
-            with open(tmp_path, "wb") as f:
-                f.write(file.getvalue())
-            result = st.session_state.ingestor.ingest_file(tmp_path)
-            if result["status"] == "success":
-                st.session_state.ingested_docs.append({"name": file.name, "format": result["format"], "content": result["content"]})
-                st.session_state.knowledge_base += result["content"] + "\n\n"
-            os.remove(tmp_path)
-        st.success(f"✅ Ingested {len(uploaded_files)} files!")
+            extracted = extractor.process_and_store(file.getvalue(), file.name)
+            st.session_state.ingested_docs.append({
+                "name": file.name,
+                "components": {
+                    "text": bool(extracted["text"]),
+                    "tables": len(extracted["tables"]),
+                    "images": len(extracted["images"]),
+                    "formulas": len(extracted["formulas"]),
+                    "graphs": len(extracted["graphs_data"]),
+                }
+            })
+        st.success(f"✅ Multimodal ingestion complete! {len(uploaded_files)} files processed.")
         st.rerun()
 
     st.markdown("---")
