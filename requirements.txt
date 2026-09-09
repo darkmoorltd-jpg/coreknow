@@ -11,14 +11,4 @@ PyPDF2
 beautifulsoup4
 plotly
 gTTS
-torch
-torchvision
-transformers
-accelerate
-python-docx
-openpyxl
-python-pptx
-pandas
-sentence-transformers
-feedparser
-
+rdkit
