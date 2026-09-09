@@ -159,6 +159,28 @@ st.markdown('<div class="subtitle">Autonomous Biomedical Knowledge Engine</div>'
 # Live status
 st.markdown(f'<p style="text-align:center;color:#00c853;"><span class="status-dot"></span>LIVE — Auto-refreshing every 3s</p>', unsafe_allow_html=True)
 
+
+# Sidebar Navigation
+with st.sidebar:
+    st.markdown("## 🧠 CoreKnow")
+    st.markdown("---")
+    st.markdown("### 📄 Pages")
+    st.page_link("app.py", label="🏠 Home", use_container_width=True)
+    st.page_link("pages/3_Deep_Search.py", label="🔍 Deep Search", use_container_width=True)
+    st.page_link("pages/4_Browse_Knowledge.py", label="📚 Browse Knowledge", use_container_width=True)
+    st.page_link("pages/5_Worker_Progress.py", label="📊 Worker Progress", use_container_width=True)
+    st.page_link("pages/6_Drug_Discovery.py", label="💊 Drug Discovery", use_container_width=True)
+    
+    st.markdown("---")
+    st.markdown("### 📊 Stats")
+    try:
+        st.metric("Papers", paper_count)
+        st.metric("Formulas", total_formulas)
+        st.metric("KG Nodes", kg_count)
+    except:
+        pass
+
+
 # Supabase
 SUPABASE_URL = st.secrets["supabase"]["url"]
 SUPABASE_KEY = st.secrets["supabase"]["service_key"]
