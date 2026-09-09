@@ -1,12 +1,9 @@
 
 import streamlit as st
-from st_autorefresh import st_autorefresh
+import time
 from supabase import create_client
 
 st.set_page_config(page_title="Worker Progress", page_icon="📊", layout="wide")
-
-# 🔄 Auto-refresh every 2 seconds
-st_autorefresh(interval=2000, key="coreknow_refresh")
 
 st.title("📊 CoreKnow Worker Progress")
 st.markdown("Monitor the autonomous learning worker in real time.")
@@ -75,3 +72,7 @@ except:
 
 st.markdown("---")
 st.caption("Auto-refresh every 2 seconds")
+
+# Built-in auto-refresh using sleep + rerun
+time.sleep(2)
+st.rerun()
