@@ -21,3 +21,5 @@ python-pptx
 pandas
 sentence-transformers
 feedparser
+
+streamlit-autorefresh
