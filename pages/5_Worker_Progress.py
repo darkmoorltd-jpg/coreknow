@@ -4,21 +4,160 @@ import time
 from supabase import create_client
 import json
 
-st.set_page_config(page_title="Worker Progress", page_icon="📊", layout="wide")
+st.set_page_config(page_title="CoreKnow Worker", page_icon="🧠", layout="wide")
 
+# ============================================
+# BADASS HUD STYLING
+# ============================================
 st.markdown("""
 <style>
-    .stApp { background: radial-gradient(ellipse at 20% 50%, #0d1b2a 0%, #0a0e17 70%); color: #e0e0e0; }
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+    .stApp { 
+        background: radial-gradient(ellipse at 50% 50%, #0d1b2a 0%, #050810 100%);
+        color: #e0e0e0;
+        font-family: 'Rajdhani', sans-serif;
+    }
     header, footer { visibility: hidden; }
-    .title { font-size: 2.5rem; font-weight: 900; text-align: center; background: linear-gradient(135deg, #00e5ff, #7c4dff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .stat-card { background: #111827; border: 1px solid #1f2a44; border-radius: 10px; padding: 1rem; text-align: center; }
-    .stat-number { font-size: 2rem; font-weight: 700; color: #00e5ff; }
-    .stat-label { color: #8892b0; font-size: 0.8rem; }
+
+    .hud-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        text-align: center;
+        background: linear-gradient(135deg, #00e5ff 0%, #7c4dff 50%, #ff1744 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 30px rgba(0,229,255,0.5);
+        animation: pulse 2s infinite alternate;
+    }
+
+    @keyframes pulse {
+        0% { filter: brightness(1); }
+        100% { filter: brightness(1.3); }
+    }
+
+    .subtitle {
+        text-align: center;
+        color: #8892b0;
+        font-size: 1rem;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: linear-gradient(145deg, #0d1117 0%, #111827 100%);
+        border: 1px solid #1f2a44;
+        border-radius: 12px;
+        padding: 1.2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+    .stat-card:hover {
+        border-color: #00e5ff;
+        box-shadow: 0 0 25px rgba(0,229,255,0.3);
+        transform: translateY(-3px);
+    }
+    .stat-number {
+        font-family: 'Orbitron', monospace;
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #00e5ff;
+        text-shadow: 0 0 10px rgba(0,229,255,0.5);
+    }
+    .stat-label {
+        color: #8892b0;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-top: 0.3rem;
+    }
+
+    .scan-line {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #00e5ff, transparent);
+        animation: scan 3s linear infinite;
+        z-index: 999;
+    }
+    @keyframes scan {
+        0% { top: 0; }
+        100% { top: 100%; }
+    }
+
+    .status-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background: #00c853;
+        border-radius: 50%;
+        margin-right: 8px;
+        animation: blink 1s infinite;
+    }
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    .paper-expander {
+        background: #0d1117;
+        border: 1px solid #1f2a44;
+        border-radius: 8px;
+        padding: 0.5rem;
+        margin: 0.3rem 0;
+    }
+
+    .formula-tag {
+        display: inline-block;
+        background: #111827;
+        border: 1px solid #7c4dff;
+        border-radius: 4px;
+        padding: 2px 8px;
+        margin: 2px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        color: #b388ff;
+    }
+
+    .disease-tag {
+        display: inline-block;
+        background: #1a0a0a;
+        border: 1px solid #ff1744;
+        border-radius: 4px;
+        padding: 2px 8px;
+        margin: 2px;
+        font-size: 0.7rem;
+        color: #ff5252;
+    }
+
+    .gene-tag {
+        display: inline-block;
+        background: #0a1a0a;
+        border: 1px solid #00c853;
+        border-radius: 4px;
+        padding: 2px 8px;
+        margin: 2px;
+        font-size: 0.7rem;
+        color: #69f0ae;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="title">📊 CoreKnow Worker Progress</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle" style="text-align:center;color:#8892b0;">Real-time autonomous learning monitor</div>', unsafe_allow_html=True)
+# Scan line animation
+st.markdown('<div class="scan-line"></div>', unsafe_allow_html=True)
+
+# Title
+st.markdown('<div class="hud-title">🧠 COREKNOW WORKER</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Autonomous Biomedical Knowledge Engine</div>', unsafe_allow_html=True)
+
+# Live status
+st.markdown(f'<p style="text-align:center;color:#00c853;"><span class="status-dot"></span>LIVE — Auto-refreshing every 3s</p>', unsafe_allow_html=True)
 
 # Supabase
 SUPABASE_URL = st.secrets["supabase"]["url"]
@@ -30,7 +169,6 @@ def get_client():
 
 client = get_client()
 
-# Fetch all stats
 def fetch_table_count(table):
     try:
         res = client.table(table).select("*", count="exact").execute()
@@ -39,20 +177,19 @@ def fetch_table_count(table):
         return 0
 
 # Get counts
-doc_count = fetch_table_count("coreknow_documents")
-chunk_count = fetch_table_count("coreknow_chunks")
 paper_count = fetch_table_count("coreknow_biomed_papers")
 kg_count = fetch_table_count("coreknow_kg")
 
-# Get formula and entity stats from biomed papers
+# Get stats from papers
 try:
-    papers_res = client.table("coreknow_biomed_papers").select("formulas, entities, title, pmcid").order("id", desc=True).limit(50).execute()
+    papers_res = client.table("coreknow_biomed_papers").select("formulas, entities, title, pmcid, full_text").order("id", desc=True).limit(20).execute()
     papers = papers_res.data if papers_res.data else []
     
     total_formulas = 0
     total_diseases = 0
     total_genes = 0
     total_compounds = 0
+    total_chars = 0
     
     for p in papers:
         try:
@@ -62,6 +199,7 @@ try:
             total_diseases += len(entities.get("diseases", []))
             total_genes += len(entities.get("genes", []))
             total_compounds += len(entities.get("compounds", []))
+            total_chars += len(p.get("full_text", ""))
         except:
             pass
 except:
@@ -70,58 +208,75 @@ except:
     total_diseases = 0
     total_genes = 0
     total_compounds = 0
+    total_chars = 0
 
-# Display metrics
-st.markdown("### 📈 Overall Stats")
+# HUD Stats
+st.markdown("### 📈 KNOWLEDGE METRICS")
 col1, col2, col3, col4, col5, col6 = st.columns(6)
+
 with col1:
-    st.markdown(f'<div class="stat-card"><div class="stat-number">{paper_count}</div><div class="stat-label">Research Papers</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="stat-card"><div class="stat-number">{paper_count}</div><div class="stat-label">📄 Papers</div></div>', unsafe_allow_html=True)
 with col2:
-    st.markdown(f'<div class="stat-card"><div class="stat-number">{total_formulas}</div><div class="stat-label">Formulas</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="stat-card"><div class="stat-number">{total_formulas}</div><div class="stat-label">⚗️ Formulas</div></div>', unsafe_allow_html=True)
 with col3:
-    st.markdown(f'<div class="stat-card"><div class="stat-number">{total_diseases}</div><div class="stat-label">Diseases</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="stat-card"><div class="stat-number">{total_diseases}</div><div class="stat-label">🦠 Diseases</div></div>', unsafe_allow_html=True)
 with col4:
-    st.markdown(f'<div class="stat-card"><div class="stat-number">{total_genes}</div><div class="stat-label">Genes</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="stat-card"><div class="stat-number">{total_genes}</div><div class="stat-label">🧬 Genes</div></div>', unsafe_allow_html=True)
 with col5:
-    st.markdown(f'<div class="stat-card"><div class="stat-number">{total_compounds}</div><div class="stat-label">Compounds</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="stat-card"><div class="stat-number">{total_compounds}</div><div class="stat-label">💊 Compounds</div></div>', unsafe_allow_html=True)
 with col6:
-    st.markdown(f'<div class="stat-card"><div class="stat-number">{kg_count}</div><div class="stat-label">KG Nodes</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="stat-card"><div class="stat-number">{kg_count}</div><div class="stat-label">🕸️ KG Nodes</div></div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
-# Recent papers with extraction details
-st.markdown("### 🕒 Recent Papers Extracted")
+# Recent papers
+st.markdown("### 🕒 LIVE EXTRACTION FEED")
 if papers:
-    for p in papers[:15]:
+    for p in papers[:10]:
         pmcid = p.get("pmcid", "N/A")
-        title = p.get("title", "Untitled")[:80]
+        title = p.get("title", "Untitled")[:70]
+        full_text_len = len(p.get("full_text", ""))
+        
         try:
             formulas = json.loads(p.get("formulas", "[]")) if p.get("formulas") else []
             entities = json.loads(p.get("entities", "{}")) if p.get("entities") else {}
-            num_formulas = len(formulas)
-            diseases = entities.get("diseases", [])
-            genes = entities.get("genes", [])
-            compounds = entities.get("compounds", [])
+            diseases = entities.get("diseases", [])[:5]
+            genes = entities.get("genes", [])[:5]
+            compounds = entities.get("compounds", [])[:5]
         except:
-            num_formulas = 0
+            formulas = []
             diseases = []
             genes = []
             compounds = []
         
         with st.expander(f"📄 {title}"):
-            st.markdown(f"**PMCID:** {pmcid}")
-            st.markdown(f"**Formulas ({num_formulas}):** {', '.join(formulas[:10])}")
+            st.markdown(f"**PMCID:** `{pmcid}` | **Full Text:** {full_text_len:,} chars")
+            
+            if formulas:
+                st.markdown("**Formulas:**")
+                for f in formulas[:8]:
+                    st.markdown(f'<span class="formula-tag">{f}</span>', unsafe_allow_html=True)
+            
             if diseases:
-                st.markdown(f"**Diseases:** {', '.join(diseases[:5])}")
+                st.markdown("**Diseases:**")
+                for d in diseases:
+                    st.markdown(f'<span class="disease-tag">{d}</span>', unsafe_allow_html=True)
+            
             if genes:
-                st.markdown(f"**Genes:** {', '.join(genes[:5])}")
+                st.markdown("**Genes:**")
+                for g in genes:
+                    st.markdown(f'<span class="gene-tag">{g}</span>', unsafe_allow_html=True)
+            
             if compounds:
-                st.markdown(f"**Compounds:** {', '.join(compounds[:5])}")
+                st.markdown("**Compounds:**")
+                for c in compounds:
+                    st.markdown(f'<span class="formula-tag">{c}</span>', unsafe_allow_html=True)
 else:
-    st.info("No papers extracted yet. Run the worker in Colab to start.")
+    st.info("⚡ Waiting for worker to extract papers...")
 
 st.markdown("---")
-st.caption("Auto-refreshes every 3 seconds")
+st.caption("COREKNOW // Autonomous Biomedical Knowledge Engine // Darkmoor Ltd")
 
+# Auto-refresh
 time.sleep(3)
 st.rerun()
