@@ -18,3 +18,11 @@ sentence-transformers
 python-docx
 openpyxl
 python-pptx
+PyMuPDF
+camelot-py
+plotdigitizer
+opencv-python-headless
+pytesseract
+transformers
+torch
+librosa
