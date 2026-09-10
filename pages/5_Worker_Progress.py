@@ -290,5 +290,54 @@ st.markdown("---")
 st.caption("COREKNOW // Autonomous Biomedical Knowledge Engine // Darkmoor Ltd")
 
 # Auto-refresh
+
+
+# ============================================
+# USER UPLOADS
+# ============================================
+st.markdown("---")
+st.markdown("### 📤 Recent User Uploads")
+
+# Fetch uploaded documents (those with format .pdf, .docx, etc. and not .xml from worker)
+try:
+    uploads_res = client.table("coreknow_documents")         .select("id, name, format, num_pages, created_at")         .neq("format", ".xml")         .order("id", desc=True)         .limit(10)         .execute()
+    user_uploads = uploads_res.data if uploads_res.data else []
+    
+    if user_uploads:
+        for doc in user_uploads:
+            doc_id = doc["id"]
+            name = doc.get("name", "Unnamed")
+            fmt = doc.get("format", "")
+            
+            # Get component counts for this document
+            try:
+                comps = client.table("coreknow_document_components")                     .select("component_type")                     .eq("document_id", doc_id)                     .execute()
+                
+                counts = {}
+                for c in comps.data:
+                    t = c["component_type"]
+                    counts[t] = counts.get(t, 0) + 1
+                
+                tables_count = counts.get("table", 0)
+                images_count = counts.get("image", 0)
+                formulas_count = counts.get("formulas", 0)
+                has_text = counts.get("text", 0) > 0
+            except:
+                tables_count = 0
+                images_count = 0
+                formulas_count = 0
+                has_text = False
+            
+            with st.expander(f"📄 {name} (ID: {doc_id})"):
+                st.markdown(f"**Format:** {fmt}")
+                st.markdown(f"**Text extracted:** {'✅ Yes' if has_text else '❌ No'}")
+                st.markdown(f"**Tables:** {tables_count}")
+                st.markdown(f"**Images:** {images_count}")
+                st.markdown(f"**Formulas:** {formulas_count}")
+    else:
+        st.info("No user uploads yet. Upload files from the home page.")
+except Exception as e:
+    st.info(f"Could not load user uploads: {e}")
+
 time.sleep(3)
 st.rerun()
