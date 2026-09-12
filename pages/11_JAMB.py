@@ -1,5 +1,27 @@
 import streamlit as st
-from utils.student_style import apply_theme
+import sys, os
+
+# Ensure repo root is on path
+_repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
+
+try:
+    from utils.student_style import apply_theme
+except Exception:
+    def apply_theme():
+        st.markdown("""
+        <style>
+            .stApp { background: #0d1b2a; color: #e0e0e0; }
+            header, footer { visibility: hidden; }
+            .ck-title { font-size: 2.5rem; font-weight: 900; text-align: center; color: #00e5ff; }
+            .ck-sub { text-align: center; color: #8892b0; margin-bottom: 2rem; }
+            .topic-card { background: #111827; border-left: 4px solid #00e5ff; border-radius: 8px; padding: 1rem; margin: 0.6rem 0; }
+            .topic-title { font-weight: 600; color: #e0e0e0; }
+            .topic-meta { color: #8892b0; font-size: 0.85rem; }
+        </style>
+        """, unsafe_allow_html=True)
+
 from supabase import create_client
 
 st.set_page_config(page_title="JAMB", page_icon="📚", layout="wide")
@@ -9,12 +31,11 @@ SUPABASE_URL = st.secrets["supabase"]["url"]
 SERVICE_KEY = st.secrets["supabase"]["service_key"]
 supabase = create_client(SUPABASE_URL, SERVICE_KEY)
 
-EXAM_NAME = "JAMB"
+JAMB = "JAMB"
 
-st.markdown('<div class="ck-title">📚 ' + EXAM_NAME + '</div>', unsafe_allow_html=True)
+st.markdown('<div class="ck-title">📚 ' + JAMB + '</div>', unsafe_allow_html=True)
 st.markdown('<div class="ck-sub">Select a subject to begin learning</div>', unsafe_allow_html=True)
 
-# Sidebar
 with st.sidebar:
     st.markdown("## 🎓 CoreKnow Student")
     st.markdown("---")
@@ -25,16 +46,15 @@ with st.sidebar:
     st.page_link("pages/14_NECO.py", label="📙 NECO", use_container_width=True)
     st.page_link("pages/15_JSS_SS.py", label="🏫 JSS1–SS3", use_container_width=True)
 
-# Fetch subjects
 try:
-    subjects_res = supabase.table("education_syllabi").select("subject").eq("exam", EXAM_NAME).execute()
+    subjects_res = supabase.table("education_syllabi").select("subject").eq("exam", JAMB).execute()
     subjects = sorted(list(set([s["subject"] for s in subjects_res.data])))
-except Exception as e:
+except:
     subjects = []
 
 if not subjects:
-    st.warning("📭 No subjects yet for " + EXAM_NAME + ". Content is being added.")
-    st.info("Try **JAMB → Chemistry** — it's fully loaded with 18 topics and lessons.")
+    st.warning("📭 No subjects yet for " + JAMB + ".")
+    st.info("Try JAMB → Chemistry — it has 18 topics and lessons already.")
     st.stop()
 
 subject = st.selectbox("📖 Select Subject", subjects, index=0)
@@ -45,16 +65,13 @@ if subject:
     try:
         topics_res = supabase.table("education_syllabi") \
             .select("id, topic_number, topic_title, subtopics, learning_objectives, contents_notes") \
-            .eq("exam", EXAM_NAME) \
-            .eq("subject", subject) \
-            .order("topic_number") \
-            .execute()
+            .eq("exam", JAMB).eq("subject", subject).order("topic_number").execute()
         topics = topics_res.data
     except:
         topics = []
 
     if not topics:
-        st.info("No topics yet for " + subject + ". Coming soon.")
+        st.info("No topics yet for " + subject + ".")
     else:
         try:
             lessons_res = supabase.table("education_lessons").select("syllabus_id, lesson_text").execute()
@@ -80,7 +97,6 @@ if subject:
                 st.markdown("#### 🎯 Learning Objectives")
                 for obj in objs:
                     st.markdown("- " + str(obj))
-
                 st.markdown("#### 📌 Subtopics")
                 for sub in subs:
                     st.markdown("- " + str(sub))
@@ -89,14 +105,6 @@ if subject:
                     st.markdown("---")
                     st.markdown("#### 📖 Full Lesson")
                     st.markdown(lesson_map[t["id"]])
-                    st.markdown("---")
-                    if st.button("Generate 5 Practice Questions", key="gen_" + str(t["id"])):
-                        st.info("🧠 Question generator coming soon")
-                else:
-                    st.info("📝 Lesson content coming soon.")
-
-                if st.button("Mark as Studied", key="studied_" + str(t["id"])):
-                    st.success("✅ Progress saved! (Coming soon)")
 
 st.markdown("---")
 st.caption("CoreKnow Student · Powered by Darkmoor Ltd")
