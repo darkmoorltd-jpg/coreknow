@@ -1,550 +1,896 @@
 # JAMB Chemistry — Lesson 2
-# Chemical Combination
+# Chemical Combination (Complete Beginner's Guide)
 
 ---
 
-## Lesson Objectives
-
-By the end of this lesson, you will be able to:
-
-1. State and apply the four Laws of Chemical Combination
-2. Balance chemical equations correctly
-3. Perform mole calculations (mass, moles, particles, volume)
-4. Solve stoichiometry problems involving mass, moles, and gases
-5. Calculate empirical and molecular formulae from percentage composition
-6. Interpret and apply Avogadro's Law and Molar Volume
-7. Solve JAMB-level calculations with confidence
+This lesson is written for a student who has NEVER done calculations before. Every single step is shown. No shortcuts. No assumptions. If you can read and add, you can learn this.
 
 ---
 
-## 1. Introduction to Chemical Combination
+## PART 1: What is Chemical Combination?
 
-Chemical combination describes how elements join together to form compounds. In the 18th and 19th centuries, scientists noticed that chemical reactions follow very specific rules. These rules were formalized into LAWS that govern all chemical reactions.
+### Simple Explanation
 
-Understanding these laws is ESSENTIAL for JAMB because they underpin every calculation on mole concept, stoichiometry, and empirical formula.
+When two or more substances join together to form a NEW substance, we call it chemical combination.
 
-## 2. The Four Laws of Chemical Combination
+Example you already know:
+  Hydrogen gas + Oxygen gas = Water
 
-### 2.1 Law of Conservation of Matter
+In chemistry, we write it like this:
 
-Statement: Matter is neither created nor destroyed in a chemical reaction. The total mass of reactants equals the total mass of products.
+  2H2 + O2 -> 2H2O
 
-Proposed by: Antoine Lavoisier (1789)
+The arrow (->) means 'produces' or 'gives'.
+The number 2 in front is called a COEFFICIENT.
+The small number after a letter is called a SUBSCRIPT.
 
-Mathematical form:
+Let me explain what those mean:
 
-    Total mass of reactants = Total mass of products
+| Symbol | Meaning |
+|--------|---------|
+| H | Hydrogen atom |
+| H2 | Two hydrogen atoms joined together (a molecule) |
+| O | Oxygen atom |
+| O2 | Two oxygen atoms joined together |
+| 2H2 | TWO molecules of H2 (so 4 H atoms total) |
+| H2O | Water molecule (2 H + 1 O) |
+| 2H2O | TWO water molecules |
 
-Example:
+## PART 2: The Four Laws of Chemical Combination
 
-When 12 g of carbon burns in 32 g of oxygen:
+Scientists studied reactions and noticed they always follow 4 rules. These rules are called LAWS.
 
-    C  +  O2  ->  CO2
-    12g + 32g =  44g
+We will learn each one with a real-world analogy, then the formula, then examples.
 
-The mass is conserved: 12 + 32 = 44 g.
+### LAW 1: Law of Conservation of Matter
 
-Why it matters in JAMB:
-- You use this to find unknown masses in reactions.
-- It is the basis for balancing equations.
+**The Law in Plain English:**
 
-Test: If 8 g of A reacts completely with 12 g of B, what mass of product is formed?
-Answer: 8 + 12 = 20 g (mass is conserved).
+Matter cannot be created and cannot be destroyed. In a chemical reaction, atoms just rearrange. The total weight of what you start with EQUALS the total weight of what you end with.
 
-### 2.2 Law of Definite (Constant) Proportions
+**Analogy You Can Understand:**
 
-Statement: A pure chemical compound always contains the same elements combined in the same proportion by mass, regardless of its source or method of preparation.
+Imagine you have 5 red balls and 3 blue balls. You mix them into a bag. Whether they are mixed or separate, you STILL have 5 red and 3 blue balls. Nothing is lost. Nothing is gained. Just rearranged.
 
-Proposed by: Joseph Proust (1799)
+That's exactly what happens in chemistry. Atoms are the 'balls'.
 
-Mathematical form:
+**The Formula:**
 
-    Mass of element A    constant
-    ----------------  =  --------
-    Mass of element B    constant
+  Total mass of reactants = Total mass of products
 
-Example: Water (H2O)
+REACTANTS = substances you start with (left side of arrow)
+PRODUCTS = substances formed (right side of arrow)
 
-Whether water comes from rain, tap, or a chemical reaction:
-- Mass ratio of H : O is ALWAYS 1 : 8
-- Percentage of H = 11.1%
-- Percentage of O = 88.9%
+**Simple Example 1 — Very Detailed:**
 
-Calculation of percentage composition:
+Reaction: Carbon burns in oxygen to form carbon dioxide
 
-    Percentage of element = (Mass of element / Molar mass) x 100
+  C + O2 -> CO2
 
-For H2O (Molar mass = 18 g/mol):
-    % H = (2/18) x 100 = 11.1%
-    % O = (16/18) x 100 = 88.9%
+STEP 1: Look at what we have.
+  - Carbon weighs 12 g
+  - Oxygen weighs 32 g
 
-### 2.3 Law of Multiple Proportions
+STEP 2: Add them up (this is total reactant mass).
+  12 + 32 = 44 g
 
-Statement: When two elements combine to form more than one compound, the masses of one element that combine with a FIXED mass of the other are in simple whole-number ratios.
+STEP 3: According to the law, products must also weigh 44 g.
+  So CO2 = 44 g
 
-Proposed by: John Dalton (1803)
+Verify: 12 + 32 = 44. YES! The law holds.
 
-Example: Carbon and Oxygen form two compounds:
+**Simple Example 2 — Find the Unknown:**
 
-Compound 1: Carbon monoxide (CO)
-    12 g C combines with 16 g O
-    Ratio C:O = 12:16 = 3:4
+Reaction: 8 g of A reacts with 12 g of B.
+Question: How much product AB is formed?
 
-Compound 2: Carbon dioxide (CO2)
-    12 g C combines with 32 g O
-    Ratio C:O = 12:32 = 3:8
+STEP 1: Write the equation.
+  A + B -> AB
 
-Now fix carbon at 12 g and compare oxygen:
-    O in CO    = 16 g
-    O in CO2   = 32 g
-    Ratio     = 16:32 = 1:2
+STEP 2: Identify given masses.
+  A = 8 g
+  B = 12 g
 
-Simple whole-number ratio: 1 : 2 (YES)
+STEP 3: Apply the law.
+  Mass of AB = Mass of A + Mass of B
+  Mass of AB = 8 + 12
+  Mass of AB = 20 g
 
-More examples:
+**Answer: 20 g**
 
-Nitrogen and Oxygen form:
-- N2O   (ratio N:O = 28:16 = 7:4)
-- NO    (ratio N:O = 14:16 = 7:8)
-- NO2   (ratio N:O = 14:32 = 7:16)
-- N2O5  (ratio N:O = 28:80 = 7:20)
+**Simple Example 3 — Reverse Direction:**
 
-Fixed mass of N = 14 g, oxygen masses: 8, 16, 32, 40 -> ratio 1:2:4:5
+Reaction: 24 g of Mg reacts with oxygen to give 40 g of MgO.
+Question: How much oxygen was used?
 
-### 2.4 Law of Reciprocal Proportions
+STEP 1: Identify what you know.
+  Mass of reactant Mg = 24 g
+  Mass of product MgO = 40 g
+  Mass of oxygen = ? (unknown)
 
-Statement: If element A combines with B, and B combines with C, then the ratio of masses in which A and C combine (if they do) is the same as, or a simple multiple of, the ratio of their masses when they combined with B.
+STEP 2: Set up the equation using the law.
+  Mg + O2 = MgO
+  24 + x = 40
 
-Proposed by: Jeremias Richter (1792)
+STEP 3: Solve for x.
+  x = 40 - 24
+  x = 16 g
 
-Example:
-Sodium (Na) combines with Chlorine (Cl) in ratio 23:35.5
-Chlorine (Cl) combines with Hydrogen (H) in ratio 35.5:1
-Therefore, Sodium combines with Hydrogen in ratio 23:1
+**Answer: 16 g of oxygen**
 
-Verification: NaH (sodium hydride) - 23 g Na : 1 g H  (correct!)
+### LAW 2: Law of Definite Proportions
 
-## 3. Balancing Chemical Equations
+**The Law in Plain English:**
 
-### 3.1 Rules for Balancing
+A pure compound ALWAYS contains the same elements in the same mass ratio. It doesn't matter where it came from or how you made it.
 
-Rule 1: The number of atoms of each element must be the same on both sides.
-Rule 2: Only coefficients (numbers in front) can be changed, NOT subscripts.
-Rule 3: Balance hydrogen and oxygen LAST (easiest to fix).
-Rule 4: If using polyatomic ions (SO4, NO3, OH), balance them as a group.
+**Analogy:**
 
-### 3.2 Worked Example: Balance Combustion of Methane
+Every recipe for a cake says '2 cups of flour and 1 cup of sugar'. Whether you bake it in Lagos or London, the RATIO of flour to sugar is the same. Water is the same: it ALWAYS has 2 hydrogen atoms and 1 oxygen atom. Everywhere on earth.
 
-Unbalanced:
+**The Formula for Percentage:**
 
-    CH4  +  O2  ->  CO2  +  H2O
+  Percentage of element = (Mass of that element / Molar mass of compound) x 100
 
-Step 1: Count atoms
-  Reactants: C=1, H=4, O=2
-  Products:  C=1, H=2, O=3
+Let me explain each part:
+  Mass of that element = total mass of that element in the formula
+  Molar mass = total mass of the whole compound
+  Multiply by 100 to get percentage
 
-Step 2: Balance H first (put 2 in front of H2O)
-    CH4  +  O2  ->  CO2  +  2H2O
-  Now: H=4 (reactants) = H=4 (products)
+**Detailed Example — Water (H2O):**
 
-Step 3: Count O
-  Products: O = 2 + 2 = 4
-  Reactants: O = 2
-  Put 2 in front of O2:
+STEP 1: Find the molar mass of H2O.
+  Hydrogen (H) = 1 g/mol  (atomic mass of H)
+  Oxygen (O) = 16 g/mol   (atomic mass of O)
 
-    CH4  +  2O2  ->  CO2  +  2H2O
+STEP 2: Count atoms in H2O.
+  H: 2 atoms
+  O: 1 atom
 
-Check all atoms:
-  C: 1 = 1
-  H: 4 = 4
-  O: 4 = 4
-  BALANCED!
+STEP 3: Calculate mass of H in water.
+  Mass of H = 2 x 1 = 2 g/mol
 
-### 3.3 Common Equations to Memorize
+STEP 4: Calculate mass of O in water.
+  Mass of O = 1 x 16 = 16 g/mol
 
-    2H2  +  O2  ->  2H2O
-    N2  +  3H2  ->  2NH3  (Haber process)
-    2Na  +  2H2O  ->  2NaOH  +  H2
-    Zn  +  2HCl  ->  ZnCl2  +  H2
-    CaCO3  ->  CaO  +  CO2
-    2KClO3  ->  2KCl  +  3O2
-    2SO2  +  O2  ->  2SO3  (Contact process)
-    NaOH  +  HCl  ->  NaCl  +  H2O  (neutralization)
+STEP 5: Add them up for the total molar mass.
+  Total = 2 + 16 = 18 g/mol
 
-## 4. The Mole Concept — Formula Mastery
+STEP 6: Find percentage of H.
+  % H = (2 / 18) x 100
+      = 0.1111 x 100
+      = 11.11%
 
-This is the MOST IMPORTANT section for JAMB calculations. Master every formula here.
+STEP 7: Find percentage of O.
+  % O = (16 / 18) x 100
+      = 0.8889 x 100
+      = 88.89%
 
-### 4.1 What is a Mole?
+STEP 8: Verify (should total 100%).
+  11.11 + 88.89 = 100%
 
-Definition: A mole is the amount of substance that contains exactly 6.022 x 10^23 particles (atoms, molecules, or ions).
+**Result: Water is always 11.11% H and 88.89% O, everywhere in the world.**
 
-This number 6.022 x 10^23 is called AVOGADRO'S CONSTANT.
+### LAW 3: Law of Multiple Proportions
 
-Symbols defined:
+**The Law in Plain English:**
+
+When two elements can form MORE THAN ONE compound (like CO and CO2), the masses of one element that combine with a FIXED mass of the other will be in small whole-number ratios.
+
+**Analogy:**
+
+If 1 kg of rice can be eaten with 2 kg of beans, or with 4 kg of beans, the ratio of beans is 2:4 = 1:2. Simple, whole numbers. This is what the law says about chemical compounds.
+
+**Detailed Example — Carbon and Oxygen:**
+
+Carbon forms two compounds with oxygen:
+  1. Carbon monoxide (CO)
+  2. Carbon dioxide (CO2)
+
+STEP 1: Calculate mass of O in CO that combines with 12 g of C.
+  In CO: 1 atom of C (12) + 1 atom of O (16) = 28
+  So 12 g C combines with 16 g O
+
+STEP 2: Calculate mass of O in CO2 that combines with 12 g of C.
+  In CO2: 1 atom of C (12) + 2 atoms of O (2 x 16 = 32) = 44
+  So 12 g C combines with 32 g O
+
+STEP 3: Fix carbon at 12 g in both cases.
+  In CO: O = 16 g
+  In CO2: O = 32 g
+
+STEP 4: Write the ratio.
+  O in CO : O in CO2 = 16 : 32
+
+STEP 5: Simplify the ratio.
+  16 : 32 = 1 : 2
+
+**Result: 1:2 — simple whole numbers. The law is verified.**
+
+**Another Example — Nitrogen and Oxygen:**
+
+Nitrogen forms: N2O, NO, NO2, N2O5
+
+STEP 1: Fix nitrogen at 14 g (since 28/2 = 14, to make it simple).
+
+In N2O: N=28, O=16. For 14 g N, O = 8 g
+In NO: N=14, O=16. For 14 g N, O = 16 g
+In NO2: N=14, O=32. For 14 g N, O = 32 g
+In N2O5: N=28, O=80. For 14 g N, O = 40 g
+
+STEP 2: Ratio of O for fixed 14 g N.
+  8 : 16 : 32 : 40 = 1 : 2 : 4 : 5
+
+**Whole numbers. Law verified.**
+
+### LAW 4: Law of Reciprocal Proportions
+
+**The Law in Plain English:**
+
+If A combines with B, and B combines with C, then the ratio of A and C that combine directly **Detailed Example:**
+
+STEP 1: We know Na combines with Cl.
+  Na : Cl = 23 : 35.5
+
+STEP 2: We know Cl combines with H.
+  Cl : H = 35.5 : 1
+
+STEP 3: What about Na and H directly?
+  Since 23 g Na pairs with 35.5 g Cl, and 35.5 g Cl pairs with 1 g H,
+  Then 23 g Na should pair with 1 g H.
+
+STEP 4: Check with NaH (sodium hydride).
+  Na = 23, H = 1. Ratio = 23:1. YES! Verified.
+
+## PART 3: How to Balance Chemical Equations (Step-by-Step)
+
+An equation is BALANCED when the number of atoms of each element is the same on BOTH sides.
+
+### The Golden Rules
+
+1. You can ONLY change the COEFFICIENT (number in front).
+2. You can NEVER change a SUBSCRIPT (small number below).
+3. Balance one element at a time.
+4. Balance H and O LAST.
+
+### Full Detailed Example — Balance Methane Combustion
+
+Unbalanced equation:
+
+  CH4 + O2 -> CO2 + H2O
+
+**STEP 1: Make a table of atoms.**
+
+  Element | Reactants | Products
+  --------|-----------|---------
+  C | 1 | 1
+  H | 4 | 2
+  O | 2 | 3
+
+C is balanced. H is NOT (4 vs 2). O is NOT (2 vs 3).
+
+**STEP 2: Balance H first.**
+
+Reactants have 4 H. Products have 2 H.
+To get 4 H on the right, put a 2 in front of H2O:
+
+  CH4 + O2 -> CO2 + 2H2O
+
+Update the table:
+  Element | Reactants | Products
+  C | 1 | 1  (still balanced)
+  H | 4 | 4  (balanced now)
+  O | 2 | 4  (2 from CO2 + 2 from 2H2O)
+
+O is now wrong: 2 vs 4.
+
+**STEP 3: Balance O.**
+
+To get 4 O on the left, put a 2 in front of O2:
+
+  CH4 + 2O2 -> CO2 + 2H2O
+
+Update the table:
+  Element | Reactants | Products
+  C | 1 | 1  ✓
+  H | 4 | 4  ✓
+  O | 4 | 4  ✓
+
+**BALANCED!**
+
+## PART 4: The Mole Concept — What Does It Mean?
+
+### What is a Mole?
+
+A mole is just a COUNTING NUMBER, like a dozen or a score.
+
+  1 dozen = 12 items
+  1 score = 20 items
+  1 mole = 6.022 x 10^23 items (atoms, molecules, ions)
+
+That huge number 6.022 x 10^23 is called AVOGADRO'S NUMBER (or Avogadro's Constant).
+
+### Why Such a Huge Number?
+
+Because atoms are TINY. If you had a teaspoon of water, it would contain more than 600 billion trillion water molecules! We need a big counting number.
+
+### SYMBOL TABLE — LEARN THESE
 
 | Symbol | Meaning | Unit |
 |--------|---------|------|
-| n      | Number of moles | mol |
-| m      | Mass of substance | g |
-| M      | Molar mass | g/mol |
-| N      | Number of particles | - |
-| NA     | Avogadro's constant = 6.022 x 10^23 | /mol |
-| V      | Volume of gas | dm^3 or L |
-| Vm     | Molar volume = 22.4 dm^3 at STP | dm^3/mol |
-| C      | Concentration | mol/dm^3 |
+| n | Number of moles | mol |
+| m | Mass of substance | g |
+| M | Molar mass (mass of 1 mole) | g/mol |
+| N | Number of particles | (no unit) |
+| NA | Avogadro's number = 6.022 x 10^23 | per mol |
+| V | Volume of gas | dm^3 (same as L) |
+| Vm | Molar volume | dm^3/mol |
+| C | Concentration | mol/dm^3 |
+| P | Pressure | atm |
+| R | Gas constant = 0.0821 | L.atm/mol.K |
+| T | Temperature | K (Kelvin) |
 
-### 4.2 The Four Core Mole Formulas
+## PART 5: FORMULA 1 — Mass to Moles
 
-FORMULA 1 — Mass to Moles
+### The Formula
 
-    n = m / M
+  n = m / M
 
-Where: n = moles, m = mass in g, M = molar mass in g/mol
-Rearranged: m = n x M, M = m / n
+### What Each Symbol Means
 
-Example: How many moles are in 44 g of CO2?
-  M(CO2) = 12 + 2(16) = 44 g/mol
-  n = 44 / 44 = 1 mol
+  n = number of moles (what you want to find)
+  m = mass in grams (usually given)
+  M = molar mass in g/mol (you calculate from atomic masses)
 
-FORMULA 2 — Moles to Particles
+### How to Find Molar Mass (M)
 
-    N = n x NA
+Add up the atomic masses of all atoms in the formula.
 
-Where: N = number of particles, n = moles, NA = 6.022 x 10^23
+Example — H2O:
+  H = 1, and there are 2 H's = 2 x 1 = 2
+  O = 16, and there is 1 O = 1 x 16 = 16
+  Total M = 2 + 16 = 18 g/mol
 
-Example: How many molecules are in 0.5 mol of water?
+### Ultra-Detailed Worked Example 1
+
+**Question:** How many moles are in 44 g of CO2? (C=12, O=16)
+
+**STEP 1 — Identify what is given.**
+  Mass m = 44 g
+  Formula = CO2
+
+**STEP 2 — Find atomic masses.**
+  C = 12
+  O = 16
+
+**STEP 3 — Calculate molar mass M.**
+  There is 1 C atom: 1 x 12 = 12
+  There are 2 O atoms: 2 x 16 = 32
+  Total M = 12 + 32 = 44 g/mol
+
+**STEP 4 — Plug into the formula.**
+  n = m / M
+  n = 44 / 44
+
+**STEP 5 — Divide.**
+  n = 1 mol
+
+**STEP 6 — Write the final answer.**
+  There is 1 mole of CO2 in 44 g.
+
+### Ultra-Detailed Worked Example 2
+
+**Question:** How many moles are in 5.6 g of iron? (Fe=56)
+
+**STEP 1 — Given.**
+  m = 5.6 g
+  Fe atomic mass = 56
+
+**STEP 2 — M is just the atomic mass for a single element.**
+  M = 56 g/mol
+
+**STEP 3 — Plug in.**
+  n = 5.6 / 56
+
+**STEP 4 — Divide.**
+  n = 0.1 mol
+
+**Answer: 0.1 mol**
+
+### Ultra-Detailed Worked Example 3 — Reverse
+
+**Question:** What is the mass of 2 moles of NaOH? (Na=23, O=16, H=1)
+
+**STEP 1 — This time we know n and want m. So rearrange the formula.**
+  n = m / M
+  Multiply both sides by M: m = n x M
+
+**STEP 2 — Find M.**
+  Na = 23 x 1 = 23
+  O = 16 x 1 = 16
+  H = 1 x 1 = 1
+  M = 23 + 16 + 1 = 40 g/mol
+
+**STEP 3 — Plug in.**
+  m = n x M = 2 x 40
+
+**STEP 4 — Multiply.**
+  m = 80 g
+
+**Answer: 80 g**
+
+## PART 6: FORMULA 2 — Moles to Number of Particles
+
+### The Formula
+
+  N = n x NA
+
+### What Each Symbol Means
+
+  N = number of particles (atoms, molecules, ions)
+  n = moles
+  NA = 6.022 x 10^23 (Avogadro's number)
+
+### Ultra-Detailed Worked Example 1
+
+**Question:** How many molecules are in 2 moles of water?
+
+**STEP 1 — Given.**
+  n = 2 mol
+  NA = 6.022 x 10^23
+
+**STEP 2 — Plug in.**
+  N = 2 x 6.022 x 10^23
+
+**STEP 3 — Multiply the whole numbers.**
+  2 x 6.022 = 12.044
+
+**STEP 4 — Attach the power of 10.**
+  N = 12.044 x 10^23
+
+**STEP 5 — Convert to standard scientific notation (one digit before decimal).**
+  12.044 x 10^23 = 1.2044 x 10^24
+
+**Answer: 1.2044 x 10^24 molecules**
+
+### Ultra-Detailed Worked Example 2
+
+**Question:** How many atoms are in 0.5 mol of sodium?
+
+**STEP 1 — Given.**
+  n = 0.5 mol
+  NA = 6.022 x 10^23
+
+**STEP 2 — Plug in.**
   N = 0.5 x 6.022 x 10^23
-  N = 3.011 x 10^23 molecules
 
-FORMULA 3 — Moles to Gas Volume
+**STEP 3 — Multiply.**
+  0.5 x 6.022 = 3.011
 
-    V = n x Vm  (at STP)
+**STEP 4 — Attach power.**
+  N = 3.011 x 10^23
 
-Where: V = volume of gas, n = moles, Vm = 22.4 dm^3/mol at STP
-Also at RTP: Vm = 24.0 dm^3/mol
+**Answer: 3.011 x 10^23 atoms**
 
-Example: What is the volume of 2 moles of O2 at STP?
-  V = 2 x 22.4 = 44.8 dm^3
+## PART 7: FORMULA 3 — Gas Volume at STP and RTP
 
-FORMULA 4 — Concentration
+### The Formula
 
-    C = n / V
+  V = n x Vm
 
-Where: C = concentration (mol/dm^3), n = moles, V = volume in dm^3
-Rearranged: n = C x V
+### What Each Symbol Means
 
-Example: What is the concentration of 0.5 mol in 2 dm^3?
-  C = 0.5 / 2 = 0.25 mol/dm^3
+  V = volume of gas
+  n = moles
+  Vm = Molar volume = 22.4 dm^3/mol (at STP)
+  Vm = 24.0 dm^3/mol (at RTP)
 
-### 4.3 STP vs RTP (Important JAMB Distinction)
+### STP vs RTP — VERY IMPORTANT
 
-| Condition | Temperature | Pressure | Molar Volume |
-|-----------|-------------|----------|--------------|
-| STP | 0C (273 K) | 1 atm | 22.4 dm^3/mol |
-| RTP | 25C (298 K) | 1 atm | 24.0 dm^3/mol |
+STP = Standard Temperature and Pressure
+  Temperature = 0 degrees Celsius = 273 K
+  Pressure = 1 atm
+  Vm = 22.4 dm^3/mol
 
-JAMB will tell you which condition. Read carefully!
+RTP = Room Temperature and Pressure
+  Temperature = 25 degrees Celsius = 298 K
+  Pressure = 1 atm
+  Vm = 24.0 dm^3/mol
 
-### 4.4 Ideal Gas Equation (Combined)
+### Ultra-Detailed Worked Example 1
 
-    PV = nRT
+**Question:** Find the volume of 2 moles of oxygen gas at STP.
 
-Where:
-  P = pressure (atm)
-  V = volume (dm^3 or L)
-  n = moles (mol)
+**STEP 1 — Given.**
+  n = 2 mol
+  Condition = STP
+  Vm = 22.4 dm^3/mol
+
+**STEP 2 — Plug in.**
+  V = 2 x 22.4
+
+**STEP 3 — Multiply.**
+  V = 44.8 dm^3
+
+**Answer: 44.8 dm^3**
+
+### Ultra-Detailed Worked Example 2
+
+**Question:** Find the volume of 0.1 mol of CO2 at RTP.
+
+**STEP 1 — Given.**
+  n = 0.1 mol
+  Condition = RTP
+  Vm = 24.0 dm^3/mol
+
+**STEP 2 — Plug in.**
+  V = 0.1 x 24.0
+
+**STEP 3 — Multiply.**
+  V = 2.4 dm^3
+
+**Answer: 2.4 dm^3**
+
+## PART 8: The Ideal Gas Equation PV = nRT
+
+### Symbols Defined
+
+  P = Pressure (in atm)
+  V = Volume (in L or dm^3)
+  n = moles
   R = gas constant = 0.0821 L.atm/mol.K
-  T = temperature in Kelvin (K = C + 273)
+  T = Temperature (in Kelvin)
 
-Example: Calculate the volume of 0.5 mol of gas at 27C and 1 atm.
+### Very Important: Convert Celsius to Kelvin
+
+  K = C + 273
+
+  Example: 25 C = 25 + 273 = 298 K
+  Example: 27 C = 27 + 273 = 300 K
+  Example: 0 C = 0 + 273 = 273 K
+
+### Ultra-Detailed Worked Example
+
+**Question:** Find the volume of 0.5 mol of gas at 27 C and 1 atm.
+
+**STEP 1 — Given.**
+  n = 0.5 mol
+  T (Celsius) = 27
+  P = 1 atm
+  R = 0.0821
+
+**STEP 2 — Convert T to Kelvin.**
   T = 27 + 273 = 300 K
-  V = nRT / P = (0.5 x 0.0821 x 300) / 1
-  V = 12.32 L
 
-## 5. Empirical and Molecular Formulae
+**STEP 3 — Rearrange formula to solve for V.**
+  PV = nRT
+  V = nRT / P
 
-### 5.1 Definitions
+**STEP 4 — Substitute.**
+  V = (0.5 x 0.0821 x 300) / 1
 
-Empirical Formula: The SIMPLEST whole-number ratio of atoms in a compound.
-Molecular Formula: The ACTUAL number of atoms in one molecule of the compound.
+**STEP 5 — Multiply numerator step by step.**
+  0.5 x 0.0821 = 0.04105
+  0.04105 x 300 = 12.315
 
-Relationship:
+**STEP 6 — Divide by P (which is 1).**
+  V = 12.315 / 1
+  V = 12.315 L
 
-    Molecular formula = (Empirical formula) x n
+**Answer: ~12.32 L**
 
-Where n = Molar mass / Empirical formula mass
+## PART 9: Empirical Formula — Step by Step
 
-### 5.2 Worked Example: Find Empirical Formula from Percentage
+### Definition
 
-Question: A compound contains 40% C, 6.7% H, and 53.3% O by mass. Find the empirical formula.
+Empirical formula = the SIMPLEST whole-number ratio of atoms in a compound.
 
-Step 1: Divide each % by atomic mass (to get moles)
-  C: 40/12 = 3.33
-  H: 6.7/1 = 6.7
-  O: 53.3/16 = 3.33
+For example, glucose has formula C6H12O6. Its empirical formula is CH2O.
 
-Step 2: Divide each by the smallest (3.33)
-  C: 3.33/3.33 = 1
-  H: 6.7/3.33 = 2
-  O: 3.33/3.33 = 1
+### The 5-Step Method
 
-Empirical formula = CH2O
+STEP 1: Write down percentages (or masses) of each element.
+STEP 2: Divide each by the atomic mass of that element. (This gives moles.)
+STEP 3: Divide all answers by the smallest of them.
+STEP 4: If any answer is not a whole number, multiply all by 2, 3, etc.
+STEP 5: Write the formula using the whole numbers.
 
-Step 3: If molecular mass = 180 g/mol, find molecular formula.
+### Ultra-Detailed Worked Example
+
+**Question:** A compound contains 40% C, 6.7% H, and 53.3% O. Find its empirical formula. (C=12, H=1, O=16)
+
+**STEP 1 — Write the percentages.**
+  C = 40%
+  H = 6.7%
+  O = 53.3%
+
+**STEP 2 — Divide each by atomic mass.**
+  C: 40 / 12 = 3.333
+  H: 6.7 / 1 = 6.7
+  O: 53.3 / 16 = 3.331
+
+**STEP 3 — Find the smallest of these numbers.**
+  Smallest = 3.331 (from O)
+
+**STEP 4 — Divide all by the smallest.**
+  C: 3.333 / 3.331 = 1.00
+  H: 6.7 / 3.331 = 2.01
+  O: 3.331 / 3.331 = 1.00
+
+**STEP 5 — Round to nearest whole number.**
+  C = 1
+  H = 2
+  O = 1
+
+**STEP 6 — Write the formula.**
+  Empirical formula = CH2O
+
+**Answer: CH2O**
+
+### Finding Molecular Formula from Empirical Formula
+
+If the molar mass is given, you can find the actual molecular formula:
+
+  Molecular formula = (Empirical formula) x n
+  Where n = Molecular mass / Empirical formula mass
+
+**Detailed Example:**
+  Empirical formula = CH2O
   Empirical formula mass = 12 + 2 + 16 = 30
-  n = 180/30 = 6
-  Molecular formula = (CH2O)6 = C6H12O6  (glucose!)
+  Given molecular mass = 180 g/mol
+  n = 180 / 30 = 6
+  Molecular formula = (CH2O) x 6 = C6H12O6
 
-## 6. Stoichiometry — Using Balanced Equations
+**That's glucose!**
 
-Stoichiometry = Using the mole ratios in a balanced equation to calculate masses, moles, or volumes in a reaction.
+## PART 10: Stoichiometry — Using Equations to Calculate
 
-### 6.1 The Steps
+### The Concept
 
-Step 1: Write balanced equation.
-Step 2: Identify mole ratio from coefficients.
-Step 3: Convert given mass/volume to moles.
-Step 4: Use mole ratio to find unknown moles.
-Step 5: Convert moles to required mass/volume.
+Coefficients in a balanced equation tell you the MOLE RATIO.
 
-### 6.2 Worked Example 1 — Mass Calculation
+Example:
+  2H2 + O2 -> 2H2O
 
-Question: What mass of CO2 is produced when 20 g of CaCO3 decomposes?
+This means: 2 moles of H2 react with 1 mole of O2 to give 2 moles of H2O.
 
-Equation:
-    CaCO3  ->  CaO  +  CO2
+### The 5-Step Method
 
-Molar masses: CaCO3 = 100, CO2 = 44
-Mole ratio: 1:1
+STEP 1: Write the balanced equation.
+STEP 2: Identify the mole ratio from coefficients.
+STEP 3: Convert the given quantity to moles.
+STEP 4: Use mole ratio to find unknown moles.
+STEP 5: Convert unknown moles to required quantity (mass/volume/particles).
 
-Step 1: Moles of CaCO3 = 20/100 = 0.2 mol
-Step 2: Moles of CO2 = 0.2 mol (1:1 ratio)
-Step 3: Mass of CO2 = 0.2 x 44 = 8.8 g
+### Ultra-Detailed Worked Example 1
 
-### 6.3 Worked Example 2 — Volume Calculation
+**Question:** What mass of CO2 is produced when 20 g of CaCO3 decomposes? (Ca=40, C=12, O=16)
 
-Question: What volume of H2 at STP is produced when 13 g of Zn reacts with excess HCl?
+**STEP 1 — Write equation.**
+  CaCO3 -> CaO + CO2
 
-Equation:
-    Zn  +  2HCl  ->  ZnCl2  +  H2
+**STEP 2 — Mole ratio.**
+  CaCO3 : CO2 = 1 : 1
 
-Molar mass of Zn = 65 g/mol
-Mole ratio Zn:H2 = 1:1
+**STEP 3 — Convert given mass to moles.**
+  M(CaCO3) = 40 + 12 + 3(16) = 40 + 12 + 48 = 100 g/mol
+  n(CaCO3) = 20 / 100 = 0.2 mol
 
-Step 1: Moles of Zn = 13/65 = 0.2 mol
-Step 2: Moles of H2 = 0.2 mol
-Step 3: Volume of H2 = 0.2 x 22.4 = 4.48 dm^3 at STP
+**STEP 4 — Use ratio.**
+  n(CO2) = 0.2 mol (same as 1:1)
 
-## 7. Relative Atomic and Molecular Mass
+**STEP 5 — Convert to mass.**
+  M(CO2) = 12 + 32 = 44 g/mol
+  m(CO2) = 0.2 x 44 = 8.8 g
 
-### 7.1 Relative Atomic Mass (RAM)
+**Answer: 8.8 g of CO2**
 
-Definition: The average mass of an atom compared to 1/12 the mass of a Carbon-12 atom.
+### Ultra-Detailed Worked Example 2
 
-Formula (average of isotopes):
+**Question:** What volume of H2 at STP is produced when 13 g of Zn reacts with excess HCl? (Zn=65)
 
-    RAM = (m1 x p1 + m2 x p2 + ...) / 100
+**STEP 1 — Equation.**
+  Zn + 2HCl -> ZnCl2 + H2
 
-Where: m = mass number, p = percentage abundance.
+**STEP 2 — Ratio.**
+  Zn : H2 = 1 : 1
 
-Example: Chlorine has isotopes Cl-35 (75%) and Cl-37 (25%)
-    RAM = (35 x 75 + 37 x 25) / 100
-    RAM = (2625 + 925) / 100 = 3550/100 = 35.5
+**STEP 3 — Moles of Zn.**
+  n(Zn) = 13 / 65 = 0.2 mol
 
-### 7.2 Relative Molecular Mass (RMM)
+**STEP 4 — Moles of H2.**
+  n(H2) = 0.2 mol
 
-Definition: The sum of relative atomic masses of all atoms in a molecule.
+**STEP 5 — Volume.**
+  V(H2) = n x 22.4 = 0.2 x 22.4 = 4.48 dm^3
+
+**Answer: 4.48 dm^3 at STP**
+
+## PART 11: Relative Atomic and Molecular Mass
+
+### Relative Atomic Mass (RAM)
+
+Definition: The average mass of an atom compared to 1/12 of a Carbon-12 atom.
+
+### Formula
+
+  RAM = (m1 x p1 + m2 x p2 + ...) / 100
+
+Where m = mass number, p = percentage abundance.
+
+### Detailed Worked Example
+
+**Question:** Chlorine has two isotopes: Cl-35 (75% abundance) and Cl-37 (25%). Find its RAM.
+
+**STEP 1 — Write out each isotope with its abundance.**
+  Cl-35: mass = 35, abundance = 75
+  Cl-37: mass = 37, abundance = 25
+
+**STEP 2 — Multiply each mass by its abundance.**
+  35 x 75 = 2625
+  37 x 25 = 925
+
+**STEP 3 — Add them.**
+  2625 + 925 = 3550
+
+**STEP 4 — Divide by 100.**
+  3550 / 100 = 35.5
+
+**Answer: RAM = 35.5**
+
+### Relative Molecular Mass (RMM)
+
+Just add up all atomic masses in the formula.
 
 Examples:
   H2O: 2(1) + 16 = 18
   CO2: 12 + 2(16) = 44
-  H2SO4: 2(1) + 32 + 4(16) = 98
+  H2SO4: 2(1) + 32 + 4(16) = 2 + 32 + 64 = 98
   NaOH: 23 + 16 + 1 = 40
-  CaCO3: 40 + 12 + 3(16) = 100
+  CaCO3: 40 + 12 + 48 = 100
 
-## 8. Worked Examples (JAMB-Style)
+## PART 12: JAMB-Style Multiple Choice Questions
 
-### Example 1
-Question: Calculate the number of moles in 5.6 g of iron (Fe = 56).
+### Q1: How many moles are in 32 g of O2? (O=16)
 
-Solution:
-  n = m / M = 5.6 / 56 = 0.1 mol
+  A. 0.5
+  B. 1
+  C. 2
+  D. 4
 
-### Example 2
-Question: What mass of NaOH is needed to make 250 cm^3 of 0.2 mol/dm^3 solution? (Na=23, O=16, H=1)
+**Detailed solution:**
+  M(O2) = 2 x 16 = 32 g/mol
+  n = m/M = 32/32 = 1 mol
+**Answer: B**
 
-Solution:
-  V = 250 cm^3 = 0.25 dm^3
-  n = C x V = 0.2 x 0.25 = 0.05 mol
+### Q2: What is the mass of 0.5 mol of NaOH? (Na=23, O=16, H=1)
+
+  A. 20 g
+  B. 30 g
+  C. 40 g
+  D. 80 g
+
+**Detailed solution:**
   M(NaOH) = 23 + 16 + 1 = 40 g/mol
-  m = n x M = 0.05 x 40 = 2.0 g
+  m = n x M = 0.5 x 40 = 20 g
+**Answer: A**
 
-### Example 3
-Question: 10 g of CaCO3 was heated strongly. What volume of CO2 at STP is produced? (Ca=40, C=12, O=16)
+### Q3: Volume of 0.5 mol of gas at STP?
 
-Solution:
-  M(CaCO3) = 100 g/mol
-  n(CaCO3) = 10/100 = 0.1 mol
-  From equation CaCO3 -> CaO + CO2, mole ratio = 1:1
-  n(CO2) = 0.1 mol
-  V = 0.1 x 22.4 = 2.24 dm^3 at STP
+  A. 11.2 dm^3
+  B. 22.4 dm^3
+  C. 24.0 dm^3
+  D. 44.8 dm^3
 
-### Example 4
-Question: A compound contains 24 g C, 4 g H, and 32 g O. Find the empirical formula.
+**Solution:**
+  V = n x 22.4 = 0.5 x 22.4 = 11.2 dm^3
+**Answer: A**
 
-Solution:
-  C: 24/12 = 2
-  H: 4/1 = 4
-  O: 32/16 = 2
-  Divide by smallest (2):
-  C: 1, H: 2, O: 1
-  Empirical formula = CH2O
+### Q4: How many molecules in 0.25 mol of CO2?
 
-### Example 5
-Question: 25 cm^3 of 0.1 M NaOH neutralizes 20 cm^3 of HCl. Find concentration of HCl.
+  A. 6.022 x 10^23
+  B. 1.5 x 10^23
+  C. 3.01 x 10^23
+  D. 1.2 x 10^24
 
-Solution:
-  Moles of NaOH = 0.1 x (25/1000) = 0.0025 mol
-  From equation NaOH + HCl -> NaCl + H2O, ratio = 1:1
-  Moles of HCl = 0.0025 mol
-  Concentration of HCl = 0.0025 / (20/1000) = 0.125 mol/dm^3
+**Solution:**
+  N = 0.25 x 6.022 x 10^23 = 1.505 x 10^23 ≈ 1.5 x 10^23
+**Answer: B**
 
-## 9. Practice Exercises
+### Q5: The molar mass of H2SO4 is (H=1, S=32, O=16)
 
-Exercise 1: State the four laws of chemical combination.
-Exercise 2: Balance: Fe + O2 -> Fe2O3
-Exercise 3: How many atoms are in 0.25 mol of Na?
-Exercise 4: Find the empirical formula of a compound with 27.3% C, 72.7% O.
-Exercise 5: What mass of water is produced when 4 g of H2 reacts with excess O2?
+  A. 49
+  B. 82
+  C. 98
+  D. 108
 
-## 10. Solutions to Practice Exercises
+**Solution:**
+  2(1) + 32 + 4(16) = 2 + 32 + 64 = 98
+**Answer: C**
 
-Solution 1:
-  (a) Law of Conservation of Matter
-  (b) Law of Definite Proportions
-  (c) Law of Multiple Proportions
-  (d) Law of Reciprocal Proportions
+### Q6: A compound has 40% C, 6.7% H, 53.3% O. Its empirical formula is
 
-Solution 2:
-  4Fe + 3O2 -> 2Fe2O3
-  Check: Fe=4:4, O=6:6. Balanced.
+  A. CHO
+  B. CH2O
+  C. C2H4O2
+  D. C6H12O6
 
-Solution 3:
-  N = n x NA = 0.25 x 6.022 x 10^23 = 1.506 x 10^23 atoms
+**Solution:**
+  C: 40/12 = 3.33, H: 6.7/1 = 6.7, O: 53.3/16 = 3.33
+  Divide by 3.33: C=1, H=2, O=1
+**Answer: B**
 
-Solution 4:
-  C: 27.3/12 = 2.275
-  O: 72.7/16 = 4.544
-  Divide by 2.275: C=1, O=2
-  Empirical formula = CO2
+### Q7: 12 g of C reacts with 32 g of O2. Mass of CO2 formed?
 
-Solution 5:
-  Equation: 2H2 + O2 -> 2H2O
-  n(H2) = 4/2 = 2 mol
-  Mole ratio H2:H2O = 2:2 = 1:1
-  n(H2O) = 2 mol
-  M(H2O) = 18 g/mol
-  Mass = 2 x 18 = 36 g
+  A. 32 g
+  B. 44 g
+  C. 56 g
+  D. 20 g
 
-## 11. JAMB-Style MCQs
+**Solution (Law of Conservation):**
+  Mass = 12 + 32 = 44 g
+**Answer: B**
 
-Q1: How many moles are in 32 g of oxygen gas (O2)? (O=16)
-A. 0.5
-B. 1
-C. 2
-D. 4
-Answer: B. M(O2) = 32 g/mol. n = 32/32 = 1 mol.
+### Q8: Balance: Na + H2O -> NaOH + H2
 
-Q2: The empirical formula of a compound with 40% C, 6.7% H, 53.3% O is:
-A. CHO
-B. CH2O
-C. C2H4O2
-D. C6H12O6
-Answer: B. CH2O.
+  A. Na + H2O -> NaOH + H2
+  B. 2Na + 2H2O -> 2NaOH + H2
+  C. 2Na + H2O -> 2NaOH + H2
+  D. Na + 2H2O -> 2NaOH + H2
 
-Q3: What volume does 0.5 mol of gas occupy at STP?
-A. 11.2 dm^3
-B. 22.4 dm^3
-C. 24.0 dm^3
-D. 44.8 dm^3
-Answer: A. V = n x 22.4 = 0.5 x 22.4 = 11.2 dm^3.
+**Detailed solution:**
+  Try B: Reactants Na=2, H=4, O=2. Products Na=2, H=2+2=4, O=2. Balanced!
+**Answer: B**
 
-Q4: Which law is illustrated by the fact that CO and CO2 have different oxygen ratios?
-A. Definite Proportions
-B. Multiple Proportions
-C. Reciprocal Proportions
-D. Conservation of Matter
-Answer: B. Multiple Proportions.
+### Q9: What volume of gas at STP if n = 3 mol?
 
-Q5: How many molecules are in 0.25 mol of CO2? (NA = 6.022 x 10^23)
-A. 6.022 x 10^23
-B. 1.506 x 10^23
-C. 3.011 x 10^23
-D. 1.204 x 10^24
-Answer: B. N = 0.25 x 6.022 x 10^23 = 1.506 x 10^23.
+  A. 22.4 dm^3
+  B. 44.8 dm^3
+  C. 67.2 dm^3
+  D. 89.6 dm^3
 
-Q6: Calculate the relative molecular mass of H2SO4 (H=1, S=32, O=16).
-A. 49
-B. 82
-C. 98
-D. 108
-Answer: C. 2(1) + 32 + 4(16) = 98.
+**Solution:**
+  V = 3 x 22.4 = 67.2 dm^3
+**Answer: C**
 
-Q7: If 12 g of C reacts with 32 g O2, mass of CO2 = ?
-A. 32 g
-B. 44 g
-C. 56 g
-D. 20 g
-Answer: B. Mass conserved: 12 + 32 = 44 g.
+### Q10: At RTP, one mole of any gas occupies:
 
-Q8: Balance: Na + H2O -> NaOH + H2
-A. Na + H2O -> NaOH + H2
-B. 2Na + 2H2O -> 2NaOH + H2
-C. 2Na + H2O -> 2NaOH + H2
-D. Na + 2H2O -> 2NaOH + H2
-Answer: B. 2Na + 2H2O -> 2NaOH + H2.
+  A. 22.4 dm^3
+  B. 24.0 dm^3
+  C. 22.4 L
+  D. 44.8 dm^3
 
-Q9: What is the mass of 3 moles of water (H2O)?
-A. 18 g
-B. 36 g
-C. 54 g
-D. 72 g
-Answer: C. M(H2O) = 18. Mass = 3 x 18 = 54 g.
+**Answer: B**
 
-Q10: The molar volume of an ideal gas at RTP is:
-A. 22.4 dm^3/mol
-B. 24.0 dm^3/mol
-C. 22.4 L/mol
-D. 24.4 dm^3/mol
-Answer: B. 24.0 dm^3/mol at RTP.
+## PART 13: Complete Formula Sheet
 
-## 12. Formula Sheet Summary
+Save this for all your JAMB revision:
 
-Keep this cheat sheet for all JAMB calculation questions:
-
-  Moles from mass:        n = m / M
-  Mass from moles:        m = n x M
-  Number of particles:    N = n x NA       (NA = 6.022 x 10^23)
-  Gas volume at STP:      V = n x 22.4     (dm^3)
-  Gas volume at RTP:      V = n x 24.0     (dm^3)
-  Ideal gas equation:     PV = nRT        (R = 0.0821 L.atm/mol.K)
-  Concentration:          C = n / V
-  Moles from conc:        n = C x V
-  Percentage element:     (mass of element / molar mass) x 100
-  Empirical formula:      Divide % by atomic mass, then by smallest
-  Molecular formula:      (Empirical formula) x n
-  Value of n:             n = Molar mass / Empirical formula mass
-  Average RAM:            (m1 x p1 + m2 x p2 + ...) / 100
+  n = m / M              Moles from mass
+  m = n x M              Mass from moles
+  N = n x NA             Particles (NA = 6.022 x 10^23)
+  V = n x 22.4           Gas volume at STP (dm^3)
+  V = n x 24.0           Gas volume at RTP (dm^3)
+  PV = nRT               Ideal gas (R = 0.0821 L.atm/mol.K)
+  C = n / V              Concentration (mol/dm^3)
+  n = C x V              Moles from concentration
+  K = C + 273            Celsius to Kelvin
+  % = (mass element / M) x 100     Percentage composition
+  RAM = (sum of m x p) / 100        Relative atomic mass
+  MF = (EF) x n          Molecular formula
+  n = M / EFM            Molecular formula factor
 
 ## Lesson 2 Complete
 
 You now know:
-1. All four laws of chemical combination
+1. All 4 laws of chemical combination (with examples)
 2. How to balance any equation
-3. Every formula needed for mole calculations
-4. Empirical and molecular formula determination
-5. Stoichiometry step-by-step
-6. Ten JAMB MCQs with reasoning
+3. Every formula needed for JAMB calculations
+4. How to find moles, mass, particles, and volume
+5. How to find empirical and molecular formula
+6. Stoichiometry in 5 steps
+7. Ten JAMB MCQs with full explanations
+
+Practice until you can do every example without looking. That is how you get 300+ in JAMB.
 
 CoreKnow Student — Powered by Darkmoor Ltd
