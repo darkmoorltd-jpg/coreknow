@@ -11,17 +11,25 @@ except Exception:
     def apply_theme():
         st.markdown("<style>.stApp{background:#0d1b2a;color:#e0e0e0;} header,footer{visibility:hidden;} .ck-title{font-size:2.5rem;font-weight:900;text-align:center;color:#00e5ff;} .ck-sub{text-align:center;color:#8892b0;margin-bottom:2rem;} .topic-card{background:#111827;border-left:4px solid #00e5ff;border-radius:8px;padding:1rem;margin:0.6rem 0;} .topic-title{font-weight:600;color:#e0e0e0;} .topic-meta{color:#8892b0;font-size:0.85rem;}</style>", unsafe_allow_html=True)
 
-try:
-    from utils.student_curriculum import CURRICULUM
-except Exception:
-    CURRICULUM = {}
+from supabase import create_client
 
 st.set_page_config(page_title="JAMB", page_icon="📕", layout="wide")
 apply_theme()
 
+# Connect to Supabase
+try:
+    supabase = create_client(
+        st.secrets["supabase"]["url"],
+        st.secrets["supabase"]["service_key"]
+    )
+except Exception as e:
+    st.error("Supabase connection failed: " + str(e))
+    st.stop()
+
 st.markdown('<div class="ck-title">📕 JAMB</div>', unsafe_allow_html=True)
 st.markdown('<div class="ck-sub">UTME Preparation · Pick a subject to begin</div>', unsafe_allow_html=True)
 
+# Sidebar
 with st.sidebar:
     st.markdown("## 🎓 CoreKnow Student")
     st.markdown("---")
@@ -32,50 +40,70 @@ with st.sidebar:
     st.page_link("pages/14_NECO.py", label="📙 NECO", use_container_width=True)
     st.page_link("pages/15_JSS_SS.py", label="🏫 JSS1–SS3", use_container_width=True)
 
-subjects = list(CURRICULUM.keys()) if CURRICULUM else []
-
-if not subjects:
-    st.warning("📭 No subjects loaded yet.")
+# Load all JAMB topics from Supabase
+try:
+    res = supabase.table("education_syllabi").select("id, subject, topic_number, topic_title, subtopics, learning_objectives").eq("exam", "JAMB").order("subject").order("topic_number").execute()
+    all_topics = res.data if res.data else []
+except Exception as e:
+    st.error("Failed to load syllabus: " + str(e))
     st.stop()
 
+if not all_topics:
+    st.warning("📭 No JAMB syllabus loaded yet.")
+    st.info("Run the ingestion cell in Colab to load the syllabus.")
+    st.stop()
+
+# Group topics by subject
+subjects = sorted(set(t["subject"] for t in all_topics))
+
+# Subject selector
 subject = st.selectbox("📖 Select Subject", subjects, index=0)
 
-if subject:
-    topics = CURRICULUM.get(subject, [])
-    st.markdown("### 📋 " + subject + " — " + str(len(topics)) + " Topics")
+# Filter topics for this subject
+topics = [t for t in all_topics if t["subject"] == subject]
 
-    for t in topics:
-        objs = t.get("objectives", [])
-        subs = t.get("subtopics", [])
+# Load lessons map
+try:
+    lessons_res = supabase.table("education_lessons").select("syllabus_id, lesson_text").execute()
+    lesson_map = {l["syllabus_id"]: l["lesson_text"] for l in lessons_res.data}
+except:
+    lesson_map = {}
 
-        st.markdown(
-            '<div class="topic-card">'
-            '<div class="topic-title">[' + str(t["n"]).zfill(2) + '] ' + str(t["title"]) + '</div>'
-            '<div class="topic-meta">📌 ' + str(len(subs)) + ' subtopics · 🎯 ' + str(len(objs)) + ' objectives</div>'
-            '</div>',
-            unsafe_allow_html=True
-        )
+st.markdown("### 📋 " + subject + " — " + str(len(topics)) + " Topics")
 
-        with st.expander("Open Topic " + str(t["n"]) + " →", expanded=False):
-            st.markdown("#### 🎯 Learning Objectives")
-            for o in objs:
-                st.markdown("- " + str(o))
+# Render each topic
+for t in topics:
+    n = t["topic_number"]
+    subs = t.get("subtopics") or []
+    objs = t.get("learning_objectives") or []
+    has_lesson = t["id"] in lesson_map
 
-            st.markdown("#### 📌 Subtopics")
-            for s in subs:
-                st.markdown("- " + str(s))
+    status = "✅ Lesson Ready" if has_lesson else "📝 Coming Soon"
 
+    st.markdown(
+        '<div class="topic-card">'
+        '<div class="topic-title">[' + str(n).zfill(2) + '] ' + str(t["topic_title"]) + '</div>'
+        '<div class="topic-meta">📌 ' + str(len(subs)) + ' subtopics · 🎯 ' + str(len(objs)) + ' objectives · ' + status + '</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+    with st.expander("Open Topic " + str(n) + " →", expanded=False):
+        st.markdown("#### 🎯 Learning Objectives")
+        for obj in objs:
+            st.markdown("- " + str(obj))
+
+        st.markdown("#### 📌 Subtopics")
+        for s in subs:
+            st.markdown("- " + str(s))
+
+        # Render the lesson if it exists
+        if has_lesson:
             st.markdown("---")
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                if st.button("📖 Read Lesson", key="lesson_" + str(t["n"])):
-                    st.info("📝 Full lesson content coming soon.")
-            with col2:
-                if st.button("✏️ Practice", key="prac_" + str(t["n"])):
-                    st.info("✏️ Practice questions coming soon.")
-            with col3:
-                if st.button("📝 Mark Done", key="done_" + str(t["n"])):
-                    st.success("✅ Progress saved (demo)")
+            st.markdown("#### 📖 Full Lesson")
+            st.markdown(lesson_map[t["id"]])
+        else:
+            st.info("📝 Full lesson content coming soon.")
 
 st.markdown("---")
 st.caption("CoreKnow Student · Powered by Darkmoor Ltd")
