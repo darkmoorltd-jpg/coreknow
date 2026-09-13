@@ -1,49 +1,39 @@
-# 📘 JAMB Chemistry — Lesson 1
+# JAMB Chemistry — Lesson 1
 # Separation of Mixtures and Purification of Chemical Substances
 
----
+## Lesson Objectives
 
-## 🎯 Lesson Objectives
-
-By the end of this lesson, you will be able to:
-
-1. **Distinguish** clearly between elements, compounds and mixtures with examples.
-2. **Differentiate** between physical and chemical changes.
-3. **Explain** the difference between pure and impure substances.
-4. **Use** boiling point and melting point as criteria for purity.
-5. **Identify** the properties of components of a mixture.
-6. **Specify** the principle behind each separation method.
-7. **Apply** separation principles to solve real-world problems.
-8. **Solve** JAMB-style questions on this topic with confidence.
-
----
+1. Distinguish elements, compounds and mixtures
+2. Differentiate physical and chemical changes
+3. Explain pure and impure substances
+4. Use boiling/melting points as purity criteria
+5. Identify properties of mixture components
+6. Specify principle of each separation method
+7. Apply separation principles to real problems
+8. Solve JAMB-style questions confidently
 
 ## 1. Matter — The Foundation
 
-### 1.1 What is Matter?
+Matter is anything that has mass and occupies space.
 
-**Matter** is anything that has mass and occupies space.
+Three classifications:
 
-Chemists classify matter in three ways:
-
-| Category | Definition |
-|----------|------------|
-| **Element** | A pure substance made of only one type of atom. Cannot be broken down by chemical means. |
-| **Compound** | A pure substance made of two or more elements chemically combined in fixed proportions. |
-| **Mixture** | Two or more substances physically combined in any proportion. |
+- Element: Pure substance of one type of atom. Cannot be broken down chemically.
+- Compound: Two or more elements chemically combined in fixed proportions.
+- Mixture: Two or more substances physically combined.
 
 ### 1.2 Elements
 
-**Definition:** An element is a substance that cannot be split into simpler substances by any known chemical means.
+Definition: A substance that cannot be split into simpler substances by chemical means.
 
-**Key Facts:**
-- Represented by chemical symbols — e.g., H, O, Na, Fe, Cu.
-- There are 118 known elements (as of 2024).
-- Examples: Hydrogen (H), Oxygen (O), Iron (Fe), Gold (Au), Sodium (Na).
+Key facts:
+- Represented by chemical symbols (H, O, Na, Fe, Cu)
+- 118 known elements
+- Examples: Hydrogen (H), Oxygen (O), Iron (Fe), Gold (Au)
 
-**Symbols in this lesson:**
+Symbols used:
 
-| Symbol | Meaning |
+| Symbol | Element |
 |--------|---------|
 | H | Hydrogen |
 | O | Oxygen |
@@ -61,481 +51,313 @@ Chemists classify matter in three ways:
 
 ### 1.3 Compounds
 
-**Definition:** A compound is a pure substance formed when two or more elements combine chemically in a fixed ratio by mass.
+Definition: A pure substance formed when two or more elements combine chemically in a fixed ratio.
 
-**Key Facts:**
-- Components cannot be separated by physical means.
-- Components lose their individual properties.
-- Have a fixed composition — the Law of Definite Proportion applies.
+Properties:
+- Cannot be separated physically
+- Components lose individual properties
+- Fixed composition (Law of Definite Proportion)
 
-**Examples:**
-
-| Compound | Formula | Elements Present | Ratio by Mass |
-|----------|---------|------------------|---------------|
-| Water | H2O | H : O | 1 : 8 |
-| Carbon dioxide | CO2 | C : O | 3 : 8 |
-| Sodium chloride | NaCl | Na : Cl | 23 : 35.5 |
-| Ammonia | NH3 | N : H | 14 : 3 |
+| Compound | Formula | Ratio by Mass |
+|----------|---------|---------------|
+| Water | H2O | 1:8 |
+| Carbon dioxide | CO2 | 3:8 |
+| Sodium chloride | NaCl | 23:35.5 |
+| Ammonia | NH3 | 14:3 |
 
 ### 1.4 Mixtures
 
-**Definition:** A mixture is a combination of two or more substances that are not chemically combined Compounds.
+Definition: Two or more substances not chemically combined.
 
-**Key Facts:**
-- vs Components retain their individual properties.
- Mi- Can be separated by physicalxtures means.
-- Composition is variable
+Properties:
+- Retain individual properties
+- Separable by physical means
+- Variable composition
+- No energy change on formation
 
- — no fixed ratio.
-- No energy| change when formed.
+Examples: Air, seawater, sand + iron filings, crude oil.
 
-**Examples:** Air (N2 + O2 + CO2 + noble gases), seawater, sand + iron filings, crude oil.
+## 2. Comparison — Element vs Compound vs Mixture
 
----
-
-## 2. Comparison Table — Elements vs Property | Element | Compound | Mixture |
+| Property | Element | Compound | Mixture |
 |----------|---------|----------|---------|
-| Composition | One type of atom | Two or more elements chemically bonded | Two or more substances physically mixed |
-| Separation | Cannot be split | Chemical means only | Physical means |
+| Composition | One atom type | Chemically bonded | Physically mixed |
+| Separation | Cannot split | Chemical means | Physical ( means |
 | Properties | Fixed | Different from components | Same as components |
-| Composition ratio | N/A | Fixed | Variable |
-| Energy change on formation | N/A | Yes | No |
+| Ratio | N/A | Fixed | Variable |
+| Energy change | N/A | Yes | No |
 
----
-
-## 3. Physical vs Chemical Changes
+## 3. Physical vsbo Chemical Changes
 
 ### 3.1 Physical Changes
 
-**Definition:** A change in which no new substance is formed — only a change in physical state, shape, or size.
+Definition: No new substance formed; only state, shape, or size change.
 
-**Characteristics:**
 - Reversible (usually)
-- No new substance formed
 - Mass unchanged
-- Energy change is small
+- Small energy change
 
-**Examples:** Ice melting, water boiling, dissolving sugar, cutting paper, magnetizing iron.
+Examples: Ice melting, water boiling, dissolving sugar, cutting paper.
 
 ### 3.2 Chemical Changes
 
-**Definition:** A change in which one or more new substances are formed.
+Definition: One or more new substances formed.
 
-**Characteristics:**
 - Usually irreversible
-- New substance(s) formed
-- Significant energy change (heat, light)
-- Chemical bonds broken and formed
+- New substances formed
+- Significant energy change
+- Bonds broken and formed
 
-**Examples:** Burning wood, rusting of iron, fermentation, cooking food, photosynthesis.
+Examples: Burning wood, rusting iron, fermentation, cooking, photosynthesis.
 
-### 3.3 Mass Conservation Example
+### 3.3 Mass Conservation
 
-When carbon burns in oxygen:
+C + O2 → CO2
 
-    C + O2 → CO2
-
-- Mass of C = 12 g
-- Mass of O2 = 32 g
-- Mass of CO2 = 44 g
-- Mass is conserved
-
----
+Mass of C = 12 g
+Mass of O2 = 32 g
+Mass of CO2 = 44 g
+Mass is conserved.
 
 ## 4. Pure vs Impure Substances
 
 ### 4.1 Pure Substances
 
-**Definition:** Made of only one type of particle.
-
-**Key properties:**
 - Sharp, fixed melting point
 - Sharp, fixed boiling point
 - Consistent density
 
-**Examples:** Pure water (mp = 0°C, bp = 100°C), pure ethanol (mp = -114°C, bp = 78°C).
+Examples: Pure water (mp 0C, bp 100C), pure ethanol (mp -114C, bp 78C).
 
 ### 4.2 Impure Substances
 
-**Definition:** Contains more than one type of particle.
+- Melting point depressed (melts over a range)
+- Boiling point elevatedils over a range)
 
-**Key properties:**
-- Melting point is depressed — melts over a range
-- Boiling point is elevated — boils over a range
+### 4.3 Why Impurities Affect Points
 
-### 4.3 Why Impurities Affect Melting/Boiling Points
+Impurities lower melting point: disrupt crystal lattice; fewer bonds to break.
 
-**Why impurities lower melting point:**
-- Impurity particles disrupt the regular crystal lattice.
-- Fewer bonds need to be broken at the melting point.
+Impurities raise boiling point: occupy liquid surface; reduce escape of molecules.
 
-**Why impurities raise boiling point:**
-- Impurity particles occupy the surface of the liquid, reducing escape of solvent molecules.
-- Higher temperature is needed for solvent molecules to escape.
+### 4.4 Purity Criteria
 
-### 4.4 Purity Criteria Table
+| Substance | Pure | Impure |
+|-----------|------|--------|
+| Water | 100C sharp | Above 100C |
+| Ice | 0C sharp | Below 0C |
+| Salt | 801C sharp | Range |
 
-| Substance | Pure State | Impure State |
-|-----------|-----------|--------------|
-| Water | Boils at exactly 100°C | Boils above 100°C |
-| Ice | Melts at exactly 0°C | Melts below 0°C |
-| Table salt | Melts at 801°C sharply | Melts over a range |
-
----
-
-## 5. Separation Techniques — Complete Guide
+## 5. Separation Techniques
 
 ### 5.1 Evaporation
 
-**Principle:** Solvent evaporates, leaving the solute behind.
-
-**Applicable when:** Solute is a solid and solvent is volatile.
-
-**Example:** Obtaining salt from salt solution.
+Principle: Solvent evaporates, solute remains.
+Example: Salt from salt solution.
 
 ### 5.2 Simple Distillation
 
-**Principle:** Liquid with lower boiling point vaporizes first, then condenses back in a separate flask.
-
-**Example:** Obtaining pure water from salt water.
+Principle: Liquid with lower bp vaporizes first, then condenses.
+Example: Pure water from salt water.
 
 ### 5.3 Fractional Distillation
 
-**Principle:** Separation based on differences in boiling points of miscible liquids.
-
-**Key apparatus:** Fractionating column.
-
-**Example:** Separating ethanol (bp 78°C) from water (bp 100°C).
-
-**Real-world:** Fractional distillation of crude oil, liquefied air.
+Principle: Difference in boiling points of miscible liquids.
+Key: Fractionating column.
+Example: Ethanol (bp 78C) from water (bp 100C).
+Real-world: Crude oil, liquid air.
 
 ### 5.4 Sublimation
 
-**Principle:** Some solids change directly to gas without passing through liquid state.
-
-**Substances that sublime:** Iodine, ammonium chloride, camphor, naphthalene, dry ice.
-
-**Example:** Separating iodine from sand.
+Principle: Solid → gas without liquid phase.
+Substances: Iodine, NH4Cl, camphor, naphthalene, dry ice.
+Example: Iodine from sand.
 
 ### 5.5 Filtration
 
-**Principle:** Difference in particle size — solid particles too large to pass through filter paper.
-
-**Example:** Separating sand from water.
+Principle: Particle size difference.
+Example: Sand from water.
 
 ### 5.6 Decantation
 
-**Principle:** Gravity — heavier solid settles; liquid is poured off.
-
-**Example:** Pouring clear water off muddy water.
+Principle: Gravity settling.
+Example: Water from mud.
 
 ### 5.7 Centrifugation
 
-**Principle:** Centrifugal force — heavier particles move outward faster.
-
-**Example:** Separating blood cells from plasma.
+Principle: Centrifugal force.
+Example: Blood cells from plasma.
 
 ### 5.8 Crystallization
 
-**Principle:** Cooling a hot saturated solution causes excess solute to crystallize out pure.
-
-**Example:** Purifying copper(II) sulphate crystals.
-
-**Key terms:**
-- Saturated solution: Maximum solute at that temperature.
-- Super-saturated solution: More solute than saturated — unstable.
+Principle: Cooling hot saturated solution crystallizes solute.
+Example: Purifying CuSO4.
 
 ### 5.9 Chromatography
 
-**Principle:** Components move at different rates through a medium due to:
-- Solubility in the mobile phase
-- Adsorption onto the stationary phase
+Principle: Different rates of movement through medium.
+Types: Paper, column.
 
-**Two types:**
-- Paper chromatography
-- Column chromatography
+Formula:
 
-**Formula — Retention Factor (Rf):**
+    Rf = Distance moved by solute / Distance moved by solvent front
 
-    Rf = Distance moved by solute
-         ─────────────────────────
-         Distance moved by solvent front
+Rf is between 0 and 1.
 
-Rf is always between 0 and 1.
-
-**Application:** Separating pigments in ink, dyes, amino acids, sugars.
+Application: Pigments, dyes, amino acids, sugars.
 
 ### 5.10 Magnetization
 
-**Principle:** Uses magnetic property of iron, cobalt, nickel.
+Principle: Magnetic properties.
+Example: Iron from sulphur.
 
-**Example:** Separating iron filings from sulphur.
-
-### 5.11 Summary Table
+### 5.11 Summary
 
 | Technique | Principle | Example |
 |-----------|-----------|---------|
-| Evaporation | Solvent evaporates | Salt from salt solution |
-| Simple distillation | BP difference (solvent only) | Water from salt water |
-| Fractional distillation | BP difference (both liquids) | Ethanol from water |
-| Sublimation | Sublimes without liquid phase | Iodine from sand |
+| Evaporation | Solvent evaporates | Salt from salt water |
+| Simple distillation | BP difference | Water from salt water |
+| Fractional distillation | BP difference (liquids) | Ethanol from water |
+| Sublimation | Sublimes without liquid | Iodine from sand |
 | Filtration | Particle size | Sand from water |
-| Decantation | Gravity settling | Water from mud |
-| Centrifugation | Centrifugal force | Blood cells from plasma |
-| Crystallization | Solubility difference | Purifying CuSO4 |
-| Chromatography | Different rates of movement | Pigments in ink |
+| Decantation | Gravity | Water from mud |
+| Centrifugation | Centrifugal force | Blood from plasma |
+| Crystallization | Solubility | CuSO4 purification |
+| Chromatography | Movement rates | Pigments in ink |
 | Magnetization | Magnetic property | Iron from sulphur |
 
----
-
-## 6. Worked Examples (JAMB-Style)
+## 6. Worked Examples
 
 ### Example 1
-**Question:** A mixture contains common salt, sand, and iron filings. Describe how you would obtain pure samples of each.
 
-**Solution:**
+A mixture contains common salt, sand, and iron filings.
 
-Step 1 — Separation of iron filings:
-- Pass a magnet over the mixture.
-- Iron filings are attracted to the magnet.
+Solution:
 
-Step 2 — Separation of sand from salt:
-- Add water to the remaining mixture (salt + sand).
-- Stir well. Salt dissolves; sand does not.
-- Filter the mixture.
-- Sand remains on the filter paper.
-- Filtrate = salt solution.
+Step 1: Magnet removes iron filings.
+Step 2: Add water; salt dissolves; filter out sand.
+Step 3: Evaporate filtrate to get salt.
 
-Step 3 — Separation of salt from water:
-- Evaporate the filtrate in an evaporating dish.
-- Water evaporates; salt crystals remain.
-
-**Answer:** Magnet → Filtration → Evaporation.
-
----
+Answer: Magnet → Filtration → Evaporation.
 
 ### Example 2
-**Question:** A liquid boils at 82°C. Another boils at 118°C. Which separation method would you use?
 
-**Solution:**
-- Both are liquids with different boiling points.
-- Difference is 36°C — sufficient for separation.
-- Method: Fractional distillation.
-- Reason: Difference in boiling points is significant.
+Liquid A boils at 82C, liquid B at 118C. Separation method?
 
----
+Answer: Fractional distillation (36C difference).
 
 ### Example 3
-**Question:** In paper chromatography, a pigment moved 4.5 cm while the solvent front moved 9.0 cm. Calculate Rf.
 
-**Solution:**
+In paper chromatography, pigment moved 4.5 cm, solvent 9.0 cm.
 
-    Rf = 4.5 / 9.0 = 0.5
-
-**Answer:** Rf = 0.5
-
----
+Rf = 4.5 / 9.0 = 0.5
 
 ### Example 4
-**Question:** Why is it incorrect to say that seawater is a pure substance?
 
-**Solution:**
-- Seawater contains dissolved salts, water, and dissolved gases.
-- Variable composition.
-- Boils over a range of temperatures.
-- Conclusion: Seawater is a mixture.
+Why is seawater impure?
 
----
+Answer: Dissolved salts; variable composition; boils over range.
 
 ### Example 5
-**Question:** Pure water boils at 100°C. A student finds that a sample boils at 103°C. What can you conclude?
 
-**Solution:**
-- The water contains dissolved impurities.
-- Impurities elevate the boiling point.
-- The sample is impure.
-- To purify: distillation (not filtration).
+Pure water boils at 100C. Sample boils at 103C. Conclusion?
 
----
+Answer: Contains dissolved impurities. Purify by distillation.
 
 ## 7. Practice Exercises
 
-**Exercise 1:** Define (a) element (b) compound (c) mixture. Give two examples of each.
+1. Define element, compound, mixture with examples.
+2. Differentiate physical vs chemical changes.
+3. Separate sand + ammonium chloride.
+4. Why does seawater boil above 100C?
+5. Separate liquids A (60C), B (90C), C (130C).
 
-**Exercise 2:** State the difference between:
-(a) Physical change and chemical change
-(b) Pure substance and impure substance
-
-**Exercise 3:** A student has a mixture of sand and ammonium chloride. Describe how she would separate them.
-
-**Exercise 4:** Explain why:
-(a) Pure water boils at 100°C while seawater boils above 100°C.
-(b) Impurities lower the melting point of a solid.
-
-**Exercise 5:** A mixture contains three liquids A (bp 60°C), B (bp 90°C), C (bp 130°C). Describe how to separate them.
-
----
-
-## 8. Solutions to Practice Exercises
+## 8. Solutions
 
 ### Solution 1
-- (a) Element: A pure substance containing only one type of atom. Examples: Iron (Fe), Gold (Au).
-- (b) Compound: Two or more elements chemically combined. Examples: Water (H2O), Carbon dioxide (CO2).
-- (c) Mixture: Two or more substances physically combined. Examples: Air, sand + salt.
+- Element: One atom type. Examples: Fe, Au.
+- Compound: Elements bonded. Examples: H2O, CO2.
+- Mixture: Physical mix. Examples: Air, sand + salt.
 
 ### Solution 2
-- (a) Physical change: no new substance formed (ice melting). Chemical change: new substance formed (rusting).
-- (b) Pure substance: sharp melting/boiling point. Impure substance: melts/boils over a range.
+Physical: No new substance (ice melting).
+Chemical: New substance (rusting).
 
 ### Solution 3
-Method: Sublimation
-1. Heat the mixture in a sublimation apparatus.
-2. Ammonium chloride sublimes.
-3. Vapour is collected and cooled.
-4. Sand remains in the dish.
+Sublimation: Heat mixture; NH4Cl sublimes and is collected; sand remains.
 
 ### Solution 4
-- (a) Seawater contains dissolved salts. These impurities reduce the escape of water molecules, so a higher temperature is needed to boil.
-- (b) Impurities disrupt the regular crystal lattice; fewer bonds need to be broken to melt.
+Dissolved salts reduce escape of water molecules; requires higher temperature.
 
 ### Solution 5
-Fractional distillation.
-1. Heat gently.
-2. Liquid A (bp 60°C) boils first → collected.
-3. Raise temperature to 90°C. Liquid B boils → collected.
-4. Raise temperature to 130°C. Liquid C boils → collected.
+Fractional distillation. Collect each liquid at its boiling point.
 
----
+## 9. JAMB MCQs
 
-## 9. JAMB-Style Multiple Choice Questions
+Q1: Which is a physical change?
+A. Rusting iron
+B. Burning paper
+C. Melting ice
+D. Souring milk
+Answer: C
 
-### Q1
-Which of the following is a physical change?
-A. Rusting of iron
-B. Burning of paper
-C. Melting of ice
-D. Souring of milk
-
-**Answer: C** — Melting is a change of state; no new substance formed.
-
-### Q2
-Which separation method is used to separate ethanol and water?
+Q2: Separate ethanol and water?
 A. Filtration
 B. Evaporation
 C. Simple distillation
 D. Fractional distillation
+Answer: D
 
-**Answer: D** — Both are miscible liquids with different boiling points.
-
-### Q3
-A mixture of iodine and sodium chloride can be separated by:
+Q3: Separate iodine and NaCl?
 A. Filtration
 B. Sublimation
 C. Evaporation
 D. Decantation
+Answer: B
 
-**Answer: B** — Iodine sublimes; NaCl does not.
+Q4: Sharp boiling point indicates:
+A. Density
+B. Purity
+C. Viscosity
+D. Solubility
+Answer: B
 
-### Q4
-Pure water boils at exactly 100°C. This property is used to:
-A. Determine density
-B. Test for purity
-C. Measure viscosity
-D. Test solubility
-
-**Answer: B** — Sharp boiling point indicates purity.
-
-### Q5
-In chromatography, Rf value of a substance is:
-A. Always greater than 1
-B. Always less than 1
+Q5: Rf value is:
+A. >1
+B. <1
 C. Between 0 and 1
 D. Zero
+Answer: C
 
-**Answer: C** — Solute cannot travel further than solvent front.
-
-### Q6
-Which of the following is a compound?
+Q6: Which is a compound?
 A. Air
 B. Brass
 C. Ethanol
 D. Seawater
+Answer: C
 
-**Answer: C** — Ethanol (C2H5OH) is a compound.
+Q7: Order to separate iron, sand, salt:
+A. Filtration-Magnet-Evaporation
+B. Magnet-Filtration-Evaporation
+C. Evaporation-Filtration-Magnet
+D. Decantation-Sublimation-Filtration
+Answer: B
 
-### Q7
-A mixture of iron filings, sand, and common salt can be separated in the order:
-A. Filtration → Magnet → Evaporation
-B. Magnet → Filtration → Evaporation
-C. Evaporation → Filtration → Magnet
-D. Decantation → Sublimation → Filtration
+Q8: True statement about a mixture:
+A. Fixed composition
+B. Components lose properties
+C. Separable by physical means
+D. Large energy change on formation
+Answer: C
 
-**Answer: B** — Magnet → Filtration → Evaporation.
+## 10. Formula Summary
 
-### Q8
-Which statement about a mixture is TRUE?
-A. It has a fixed composition
-B. Components lose their individual properties
-C. It can be separated by physical means
-D. Formation involves a large energy change
+Rf = Distance moved by solute / Distance moved by solvent front
 
-**Answer: C** — Components of a mixture can be separated physically.
+Key symbols: H, O, N, C, S, Na, K, Fe, Cu, Zn, Cl, I, Ag
 
----
+Key formulas: H2O, CO2, NaCl, C2H5OH, NH4Cl, CuSO4
 
-## 10. Formula & Symbol Summary
+## Lesson 1 Complete
 
-**Formula used:**
-
-    Rf = Distance moved by solute / Distance moved by solvent front
-
-**Key chemical symbols:**
-
-| Symbol | Element |
-|--------|---------|
-| H | Hydrogen |
-| O | Oxygen |
-| N | Nitrogen |
-| C | Carbon |
-| Na | Sodium |
-| K | Potassium |
-| Fe | Iron |
-| Cu | Copper |
-| Cl | Chlorine |
-| I | Iodine |
-| S | Sulphur |
-| Ag | Silver |
-
-**Key chemical formulas:**
-
-| Compound | Formula |
-|----------|---------|
-| Water | H2O |
-| Carbon dioxide | CO2 |
-| Salt | NaCl |
-| Ethanol | C2H5OH |
-| Ammonium chloride | NH4Cl |
-| Copper(II) sulphate | CuSO4 |
-
----
-
-## ✅ Lesson 1 Complete
-
-**What you have learned:**
-1. Matter's classification — elements, compounds, mixtures
-2. Physical vs chemical changes
-3. Purity criteria
-4. Ten separation techniques with principles
-5. Rf formula
-6. Five worked examples
-7. Five practice exercises with solutions
-8. Eight JAMB-style MCQs with explanations
-9. Symbol reference
-
-**Study tip for JAMB:** Focus on comparison tables, the principle behind each separation method, and applying methods to real mixtures.
-
-**Next:** Lesson 2 — Chemical Combination
-
----
-
-**CoreKnow Student · Powered by Darkmoor Ltd**
+CoreKnow Student — Powered by Darkmoor Ltd
