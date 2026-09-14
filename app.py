@@ -9,100 +9,151 @@ st.set_page_config(
 
 
 # ---------------------------------------------------
-# GLOBAL SIDEBAR STYLING — runs on every page
+# FORCE SIDEBAR VISIBLE + CLICKABLE NAV
 # ---------------------------------------------------
 st.markdown("""
 <style>
-    /* --- Sidebar container --- */
+    /* ---- 1. Force sidebar always expanded ---- */
+    section[data-testid="stSidebar"],
     [data-testid="stSidebar"] {
+        display: block !important;
+        visibility: visible !important;
+        transform: none !important;
+        margin-left: 0 !important;
+        left: 0 !important;
+        width: 300px !important;
+        min-width: 300px !important;
+        max-width: 300px !important;
         background: #141420 !important;
         border-right: 1px solid #2a2a3a !important;
+        opacity: 1 !important;
+        z-index: 999999 !important;
     }
-    [data-testid="stSidebar"] * { color: #e8e8ed; }
 
-    /* --- Group headers (Home, Exams, Study Tools, ...) --- */
-    [data-testid="stSidebarNav"] > ul > li > div > span,
-    [data-testid="stSidebarNav"] > div > div > div > div > span,
-    [data-testid="stSidebarNav"] [data-testid="stMarkdownContainer"] > p {
-        color: #8b8b9e !important;
-        font-size: 0.72rem !important;
-        font-weight: 700 !important;
-        letter-spacing: 1.4px !important;
-        text-transform: uppercase !important;
-        padding: 0.9rem 0.6rem 0.35rem 0.6rem !important;
+    /* ---- 2. Hide the collapse/close button ---- */
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarCollapsedControl"],
+    button[kind="header"] {
+        display: none !important;
+    }
+
+    /* ---- 3. Force main content to respect sidebar ---- */
+    .main .block-container,
+    section.main .block-container {
+        margin-left: 0 !important;
+    }
+
+    /* ---- 4. Sidebar nav container ---- */
+    [data-testid="stSidebarNav"] {
+        display: block !important;
+        visibility: visible !important;
+        padding: 0.5rem 0 !important;
+    }
+    [data-testid="stSidebarNav"] ul {
+        padding: 0 !important;
         margin: 0 !important;
+        list-style: none !important;
+        display: block !important;
+    }
+    [data-testid="stSidebarNav"] li {
+        display: block !important;
+        margin: 2px 0 !important;
+        padding: 0 !important;
     }
 
-    /* --- Every nav link = solid card --- */
+    /* ---- 5. Every nav link = big obvious tappable card ---- */
     [data-testid="stSidebarNav"] a {
-        background: #21212d !important;
-        border: 1px solid #3a3a4d !important;
-        border-left: 3px solid #4d6bfe !important;
-        border-radius: 10px !important;
-        padding: 0.6rem 0.85rem !important;
-        margin: 3px 6px !important;
         display: flex !important;
         align-items: center !important;
-        gap: 0.5rem !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        background: #21212d !important;
+        border: 1px solid #3a3a4d !important;
+        border-left: 4px solid #4d6bfe !important;
+        border-radius: 10px !important;
+        padding: 0.8rem 1rem !important;
+        margin: 4px 8px !important;
         text-decoration: none !important;
-        transition: all 0.15s !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
-        cursor: pointer !important;
         color: #e8e8ed !important;
-        font-size: 0.9rem !important;
+        font-size: 0.95rem !important;
         font-weight: 500 !important;
+        cursor: pointer !important;
+        transition: all 0.15s !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4) !important;
+        min-height: 44px !important;
+        box-sizing: border-box !important;
+    }
+    [data-testid="stSidebarNav"] a * {
+        color: #e8e8ed !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     [data-testid="stSidebarNav"] a:hover {
         background: #2d2d40 !important;
         border-color: #4d6bfe !important;
         border-left-color: #7c8fff !important;
         transform: translateX(2px);
-        box-shadow: 0 3px 10px rgba(77,107,254,0.4) !important;
-    }
-    [data-testid="stSidebarNav"] a:hover span,
-    [data-testid="stSidebarNav"] a:hover p,
-    [data-testid="stSidebarNav"] a:hover div {
-        color: #ffffff !important;
     }
 
-    /* --- Currently active page = full blue --- */
+    /* ---- 6. Active page = full blue, unmissable ---- */
     [data-testid="stSidebarNav"] a[aria-current="page"] {
         background: linear-gradient(90deg, #4d6bfe 0%, #3a56e0 100%) !important;
         border-color: #4d6bfe !important;
         border-left-color: #ffffff !important;
-        box-shadow: 0 3px 12px rgba(77,107,254,0.5) !important;
+        box-shadow: 0 3px 14px rgba(77,107,254,0.6) !important;
     }
-    [data-testid="stSidebarNav"] a[aria-current="page"] span,
-    [data-testid="stSidebarNav"] a[aria-current="page"] p,
-    [data-testid="stSidebarNav"] a[aria-current="page"] div {
+    [data-testid="stSidebarNav"] a[aria-current="page"] * {
         color: #ffffff !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
     }
 
-    /* --- Custom buttons inside sidebar (New chat, etc.) --- */
+    /* ---- 7. Group headers ---- */
+    [data-testid="stSidebarNav"] > ul > li > div > span,
+    [data-testid="stSidebarNav"] header,
+    [data-testid="stSidebarNav"] p {
+        color: #8b8b9e !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 1.5px !important;
+        text-transform: uppercase !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    /* ---- 8. Custom buttons in sidebar ---- */
     [data-testid="stSidebar"] .stButton > button {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
         background: #21212d !important;
         border: 1px solid #3a3a4d !important;
-        border-left: 3px solid #4d6bfe !important;
+        border-left: 4px solid #4d6bfe !important;
         color: #e8e8ed !important;
         text-align: left !important;
         justify-content: flex-start !important;
         border-radius: 10px !important;
-        padding: 0.7rem 0.9rem !important;
+        padding: 0.8rem 1rem !important;
         font-weight: 500 !important;
-        font-size: 0.9rem !important;
-        transition: all 0.15s !important;
+        font-size: 0.95rem !important;
         width: 100% !important;
-        margin-bottom: 0.35rem !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+        margin-bottom: 0.4rem !important;
+        min-height: 44px !important;
         cursor: pointer !important;
     }
     [data-testid="stSidebar"] .stButton > button:hover {
         background: #2d2d40 !important;
         border-color: #4d6bfe !important;
         color: #ffffff !important;
-        transform: translateX(2px);
-        box-shadow: 0 3px 10px rgba(77,107,254,0.35) !important;
+    }
+
+    /* ---- 9. MOBILE: force sidebar to overlay, not hide ---- */
+    @media (max-width: 768px) {
+        section[data-testid="stSidebar"],
+        [data-testid="stSidebar"] {
+            width: 85vw !important;
+            min-width: 85vw !important;
+            max-width: 85vw !important;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
