@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "CoreKnow",
+    "slug": "coreknow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "coreknow",
+    "userInterfaceStyle": "dark",
+    "assetBundlePatterns": ["**/*"],
+    "ios": { "supportsTablet": false, "bundleIdentifier": "com.darkmoor.coreknow" },
+    "android": { "package": "com.darkmoor.coreknow" },
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": true },
+    "extra": { "apiUrl": "https://coreknow-api.onrender.com" }
+  }
+}
