@@ -10,7 +10,11 @@ if _repo_root not in sys.path:
 from supabase import create_client
 from utils.ai_generator import generate_hard_mcqs
 
+from utils.student_sidebar import render_student_sidebar
+
 st.set_page_config(page_title="AI Practice", page_icon="🧠", layout="wide")
+
+render_student_sidebar()
 
 st.markdown("""
 <style>
@@ -43,16 +47,6 @@ except Exception as e:
 
 st.markdown('<div class="ck-title">🧠 AI PRACTICE</div>', unsafe_allow_html=True)
 st.markdown('<div class="ck-sub">50 HARD QUESTIONS · FRESH EACH SESSION · FULL SOLUTIONS</div>', unsafe_allow_html=True)
-
-with st.sidebar:
-    st.markdown("## CoreKnow Student")
-    st.markdown("---")
-    st.page_link("pages/10_CoreKnow_Student.py", label="Home", use_container_width=True)
-    st.page_link("pages/11_JAMB.py", label="JAMB", use_container_width=True)
-    st.page_link("pages/17_Practice.py", label="Basic Practice", use_container_width=True)
-    st.page_link("pages/18_AI_Practice.py", label="AI Practice", use_container_width=True)
-    st.page_link("pages/19_CoreKnow_Chat.py", label="Ask CoreKnow", use_container_width=True)
-    st.page_link("pages/20_Exam_Mode.py", label="Exam Mode", use_container_width=True)
 
 if "ai_qs" not in st.session_state: st.session_state.ai_qs = []
 if "ai_idx" not in st.session_state: st.session_state.ai_idx = 0
