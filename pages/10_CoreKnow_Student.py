@@ -24,11 +24,6 @@ except Exception:
 
 from supabase import create_client
 
-from utils.student_sidebar import render_student_sidebar
-
-st.set_page_config(page_title="CoreKnow Student", page_icon="🎓", layout="wide")
-
-render_student_sidebar()
 apply_theme()
 
 SUPABASE_URL = st.secrets["supabase"]["url"]
