@@ -7,7 +7,11 @@ if _repo_root not in sys.path:
 
 from supabase import create_client
 
+from utils.student_sidebar import render_student_sidebar
+
 st.set_page_config(page_title="Lesson", page_icon="📖", layout="wide")
+
+render_student_sidebar()
 
 # ============================================
 # BEAUTIFUL STYLING
@@ -173,30 +177,6 @@ except:
 # ============================================
 # SIDEBAR NAVIGATION
 # ============================================
-with st.sidebar:
-    st.markdown("## 🎓 " + exam + " " + subject)
-    st.markdown("---")
-    st.page_link("pages/10_CoreKnow_Student.py", label="🏠 Home", use_container_width=True)
-    st.page_link("pages/11_JAMB.py", label="📕 JAMB", use_container_width=True)
-    st.page_link("pages/12_WAEC.py", label="📘 WAEC", use_container_width=True)
-    st.page_link("pages/13_GCE.py", label="📗 GCE", use_container_width=True)
-    st.page_link("pages/14_NECO.py", label="📙 NECO", use_container_width=True)
-    st.page_link("pages/15_JSS_SS.py", label="🏫 JSS1–SS3", use_container_width=True)
-    st.markdown("---")
-    st.markdown("### 📚 Topics")
-
-    current_n = topic["topic_number"]
-    for sib in siblings:
-        is_active = sib["id"] == topic_id
-        marker = "▶" if is_active else "•"
-        label = str(sib["topic_number"]).zfill(2) + ". " + sib["topic_title"][:35]
-        if is_active:
-            st.markdown('<div class="mini-topic active">' + marker + " " + label + '</div>', unsafe_allow_html=True)
-        else:
-            if st.button(marker + " " + label, key="nav_" + str(sib["id"]), use_container_width=True):
-                st.session_state.selected_topic_id = sib["id"]
-                st.rerun()
-
 # ============================================
 # HERO HEADER
 # ============================================
