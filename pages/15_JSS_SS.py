@@ -1,8 +1,6 @@
 import streamlit as st
 import sys, os
 
-from utils.student_sidebar import render_student_sidebar
-
 _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
@@ -13,9 +11,6 @@ except Exception:
     def apply_theme():
         st.markdown("<style>.stApp{background:#0d1b2a;color:#e0e0e0;} header,footer{visibility:hidden;} .ck-title{font-size:2.5rem;font-weight:900;text-align:center;color:#00e5ff;} .ck-sub{text-align:center;color:#8892b0;margin-bottom:2rem;}</style>", unsafe_allow_html=True)
 
-st.set_page_config(page_title="JSS1–SS3", page_icon="🏫", layout="wide")
-
-render_student_sidebar()
 apply_theme()
 
 st.markdown('<div class="ck-title">🏫 JSS1 – SS3</div>', unsafe_allow_html=True)
