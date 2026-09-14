@@ -62,22 +62,105 @@ st.markdown("""
     }
     [data-testid="stSidebar"] * { color: #e8e8ed; }
 
-    /* ==== Sidebar buttons ==== */
+    /* ==== Native nav (st.navigation) ==== */
+    [data-testid="stSidebarNav"] {
+        padding: 0.5rem 0 !important;
+    }
+    [data-testid="stSidebarNav"] ul {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+    [data-testid="stSidebarNav"] li {
+        margin: 2px 0 !important;
+    }
+    [data-testid="stSidebarNav"] a,
+    [data-testid="stSidebarNav"] span,
+    [data-testid="stSidebarNav"] p {
+        color: #c8c8d8 !important;
+        font-size: 0.92rem !important;
+        font-weight: 500 !important;
+    }
+    /* Nav header labels — the group names */
+    [data-testid="stSidebarNav"] > div > div > div > div > span,
+    [data-testid="stSidebarNav"] header,
+    [data-testid="stSidebarNav"] [class*="header"] {
+        color: #8b8b9e !important;
+        font-size: 0.72rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 1.5px !important;
+        text-transform: uppercase !important;
+        padding: 1rem 0.5rem 0.3rem 0.5rem !important;
+    }
+    /* Nav links — the actual clickable items */
+    [data-testid="stSidebarNav"] a {
+        background: #21212d !important;
+        border: 1px solid #3a3a4d !important;
+        border-left: 3px solid #4d6bfe !important;
+        border-radius: 10px !important;
+        padding: 0.55rem 0.85rem !important;
+        margin: 3px 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        text-decoration: none !important;
+        transition: all 0.15s !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+        cursor: pointer !important;
+    }
+    [data-testid="stSidebarNav"] a:hover {
+        background: #2d2d40 !important;
+        border-color: #4d6bfe !important;
+        border-left-color: #7c8fff !important;
+        transform: translateX(2px);
+        box-shadow: 0 3px 10px rgba(77,107,254,0.35) !important;
+    }
+    [data-testid="stSidebarNav"] a:hover span,
+    [data-testid="stSidebarNav"] a:hover p {
+        color: #ffffff !important;
+    }
+    /* Active page — the currently selected nav item */
+    [data-testid="stSidebarNav"] a[aria-current="page"] {
+        background: linear-gradient(90deg, #4d6bfe 0%, #3a56e0 100%) !important;
+        border-color: #4d6bfe !important;
+        border-left-color: #ffffff !important;
+        box-shadow: 0 3px 12px rgba(77,107,254,0.5) !important;
+    }
+    [data-testid="stSidebarNav"] a[aria-current="page"] span,
+    [data-testid="stSidebarNav"] a[aria-current="page"] p {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+
+    /* ==== Custom sidebar buttons (New chat, Recent) — VISIBLE ==== */
     [data-testid="stSidebar"] .stButton > button {
-        background: transparent !important;
-        border: 1px solid #2a2a3a !important;
+        background: #21212d !important;
+        border: 1px solid #3a3a4d !important;
+        border-left: 3px solid #4d6bfe !important;
         color: #e8e8ed !important;
         text-align: left !important;
         justify-content: flex-start !important;
         border-radius: 10px !important;
-        padding: 0.6rem 1rem !important;
+        padding: 0.75rem 1rem !important;
         font-weight: 500 !important;
-        transition: all 0.15s;
+        font-size: 0.92rem !important;
+        transition: all 0.15s !important;
         width: 100% !important;
+        margin-bottom: 0.4rem !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+        cursor: pointer !important;
     }
     [data-testid="stSidebar"] .stButton > button:hover {
-        background: #1e1e2e !important;
+        background: #2d2d40 !important;
         border-color: #4d6bfe !important;
+        border-left-color: #7c8fff !important;
+        color: #ffffff !important;
+        transform: translateX(2px);
+        box-shadow: 0 3px 10px rgba(77,107,254,0.35) !important;
+    }
+    [data-testid="stSidebar"] .stButton > button:active {
+        background: #4d6bfe !important;
+        border-color: #4d6bfe !important;
+        color: #ffffff !important;
     }
 
     /* ============================================
