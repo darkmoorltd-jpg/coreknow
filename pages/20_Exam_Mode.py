@@ -10,7 +10,11 @@ if _repo_root not in sys.path:
 from supabase import create_client
 from utils.ai_generator import generate_exam, grade_uploaded_answers, extract_text_from_image
 
+from utils.student_sidebar import render_student_sidebar
+
 st.set_page_config(page_title="Exam Mode", page_icon="📝", layout="wide")
+
+render_student_sidebar()
 
 st.markdown("""
 <style>
@@ -30,16 +34,6 @@ st.markdown("""
 
 st.markdown('<div class="ck-title">Exam Mode</div>', unsafe_allow_html=True)
 st.markdown('<div class="ck-sub">FULL EXAM · UPLOAD ANSWERS · AUTO-GRADED</div>', unsafe_allow_html=True)
-
-with st.sidebar:
-    st.markdown("## CoreKnow Student")
-    st.markdown("---")
-    st.page_link("pages/10_CoreKnow_Student.py", label="Home", use_container_width=True)
-    st.page_link("pages/11_JAMB.py", label="JAMB", use_container_width=True)
-    st.page_link("pages/17_Practice.py", label="Basic Practice", use_container_width=True)
-    st.page_link("pages/18_AI_Practice.py", label="AI Practice", use_container_width=True)
-    st.page_link("pages/19_CoreKnow_Chat.py", label="Ask CoreKnow", use_container_width=True)
-    st.page_link("pages/20_Exam_Mode.py", label="Exam Mode", use_container_width=True)
 
 try:
     supabase = create_client(st.secrets["supabase"]["url"], st.secrets["supabase"]["service_key"])
