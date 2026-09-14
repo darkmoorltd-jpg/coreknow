@@ -8,12 +8,6 @@ if _repo_root not in sys.path:
 
 from utils.ai_generator import chat_with_coreknow, extract_text_from_image
 
-from utils.student_sidebar import render_student_sidebar
-
-st.set_page_config(page_title="Ask CoreKnow", page_icon="💬", layout="wide")
-
-render_student_sidebar()
-
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
