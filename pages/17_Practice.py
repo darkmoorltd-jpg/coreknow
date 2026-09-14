@@ -10,12 +10,6 @@ if _repo_root not in sys.path:
 
 from supabase import create_client
 
-from utils.student_sidebar import render_student_sidebar
-
-st.set_page_config(page_title="Practice", page_icon="✏️", layout="wide")
-
-render_student_sidebar()
-
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
