@@ -1,8 +1,6 @@
 import streamlit as st
 import sys, os
 
-from utils.student_sidebar import render_student_sidebar
-
 _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
@@ -18,9 +16,6 @@ try:
 except Exception:
     CURRICULUM = {}
 
-st.set_page_config(page_title="GCE", page_icon="📗", layout="wide")
-
-render_student_sidebar()
 apply_theme()
 
 st.markdown('<div class="ck-title">📗 GCE</div>', unsafe_allow_html=True)
