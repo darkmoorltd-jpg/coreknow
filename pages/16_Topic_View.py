@@ -224,7 +224,7 @@ with tab3:
     st.markdown("### ✏️ Practice Questions")
     st.info("🧠 Practice mode coming soon — AI-generated MCQs with instant grading.")
     if st.button("Generate 5 Practice Questions", type="primary", use_container_width=True):
-        st.info("This will use DeepSeek API to generate questions. Coming soon.")
+        st.info("AI-generated questions coming soon.")
 
 # ============================================
 # BOTTOM NAVIGATION
