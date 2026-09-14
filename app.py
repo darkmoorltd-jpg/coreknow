@@ -8,92 +8,93 @@ st.set_page_config(
 )
 
 
+
+
+
 # ---------------------------------------------------
-# SIDEBAR — fully hidden when closed, full when open
+# TOP MENU BUTTON — tap to show/hide sidebar
 # ---------------------------------------------------
 st.markdown("""
 <style>
-    /* =========================================================
-       CLOSED STATE — sidebar completely off-screen
-       ========================================================= */
-    section[data-testid="stSidebar"][aria-expanded="false"] {
-        transform: translateX(-100%) !important;
-        margin-left: -320px !important;
-        width: 0 !important;
-        min-width: 0 !important;
-        max-width: 0 !important;
-        overflow: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
+    /* ============================================================
+       SIDEBAR: FULLY OFF-SCREEN WHEN CLOSED
+       ============================================================ */
+    section[data-testid="stSidebar"] {
+        background: #141420 !important;
+        border-right: 1px solid #2a2a3a !important;
+        transition: transform 0.25s ease, margin-left 0.25s ease !important;
     }
-
-    /* =========================================================
-       OPEN STATE — sidebar full width, standard Streamlit
-       ========================================================= */
+    section[data-testid="stSidebar"][aria-expanded="false"] {
+        transform: translateX(-110%) !important;
+        margin-left: -350px !important;
+        pointer-events: none !important;
+        opacity: 0 !important;
+    }
     section[data-testid="stSidebar"][aria-expanded="true"] {
         transform: translateX(0) !important;
         margin-left: 0 !important;
-        opacity: 1 !important;
         pointer-events: auto !important;
-        background: #141420 !important;
-        border-right: 1px solid #2a2a3a !important;
+        opacity: 1 !important;
+        width: 85vw !important;
+        min-width: 85vw !important;
+        max-width: 85vw !important;
         z-index: 999998 !important;
     }
 
-    @media (max-width: 768px) {
-        section[data-testid="stSidebar"][aria-expanded="true"] {
-            width: 85vw !important;
-            min-width: 85vw !important;
-            max-width: 85vw !important;
-        }
-    }
+    /* ============================================================
+       TOP MENU BUTTON — rectangular, top of screen
+       ============================================================ */
 
-    /* =========================================================
-       TOGGLE BUTTON — always floating top-left, big, blue
-       ========================================================= */
+    /* The OPEN button (shown when sidebar is closed) */
     [data-testid="stSidebarCollapsedControl"] {
         display: block !important;
         visibility: visible !important;
         position: fixed !important;
-        top: 12px !important;
-        left: 12px !important;
-        z-index: 999999 !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        height: 52px !important;
         background: #4d6bfe !important;
-        border: 2px solid #7c8fff !important;
-        border-radius: 12px !important;
-        padding: 6px !important;
-        box-shadow: 0 4px 16px rgba(77,107,254,0.7) !important;
+        border: none !important;
+        border-bottom: 2px solid #7c8fff !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        box-shadow: 0 4px 14px rgba(77,107,254,0.5) !important;
         cursor: pointer !important;
+        z-index: 999999 !important;
     }
     [data-testid="stSidebarCollapsedControl"] button {
         background: transparent !important;
         border: none !important;
         color: #ffffff !important;
-        font-size: 1.4rem !important;
-        padding: 6px 10px !important;
+        width: 100% !important;
+        height: 100% !important;
+        padding: 0 20px !important;
         cursor: pointer !important;
-        min-height: 40px !important;
-        min-width: 40px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 12px !important;
     }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="stSidebarCollapsedControl"] svg path {
-        fill: #ffffff !important;
+    [data-testid="stSidebarCollapsedControl"] button::after {
+        content: "☰   MENU" !important;
         color: #ffffff !important;
-        width: 26px !important;
-        height: 26px !important;
+        font-size: 1.05rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 2px !important;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] svg {
+        display: none !important;
     }
 
-    /* =========================================================
-       CLOSE BUTTON — inside sidebar, big, blue, easy to tap
-       ========================================================= */
+    /* The CLOSE button (shown when sidebar is open) */
     [data-testid="stSidebarCollapseButton"] {
-        display: block !important;
-        visibility: visible !important;
         background: #4d6bfe !important;
-        border: 2px solid #7c8fff !important;
-        border-radius: 12px !important;
-        margin: 10px !important;
-        padding: 4px !important;
+        border-radius: 10px !important;
+        margin: 10px 12px !important;
+        padding: 6px 14px !important;
         cursor: pointer !important;
         box-shadow: 0 4px 12px rgba(77,107,254,0.6) !important;
     }
@@ -103,37 +104,26 @@ st.markdown("""
         color: #ffffff !important;
         cursor: pointer !important;
         min-height: 40px !important;
-        min-width: 40px !important;
+        font-size: 1rem !important;
     }
     [data-testid="stSidebarCollapseButton"] svg,
     [data-testid="stSidebarCollapseButton"] svg path {
         fill: #ffffff !important;
         color: #ffffff !important;
-        width: 22px !important;
-        height: 22px !important;
     }
 
-    /* =========================================================
-       MAIN CONTENT — full width when sidebar closed
-       ========================================================= */
-    section.main,
-    .main {
-        margin-left: 0 !important;
-        transition: margin-left 0.2s !important;
+    /* ============================================================
+       PUSH PAGE CONTENT BELOW THE TOP BAR
+       ============================================================ */
+    .main .block-container {
+        padding-top: 70px !important;
     }
 
-    /* =========================================================
-       NAV ITEMS — cards when sidebar is open
-       ========================================================= */
-    [data-testid="stSidebarNav"] ul {
-        padding: 0 !important;
-        margin: 0 !important;
-        list-style: none !important;
-    }
-    [data-testid="stSidebarNav"] li {
-        margin: 2px 0 !important;
-        padding: 0 !important;
-    }
+    /* ============================================================
+       NAV ITEMS — cards (when sidebar is open)
+       ============================================================ */
+    [data-testid="stSidebarNav"] ul { padding: 0 !important; margin: 0 !important; list-style: none !important; }
+    [data-testid="stSidebarNav"] li { margin: 2px 0 !important; padding: 0 !important; }
     [data-testid="stSidebarNav"] a {
         display: flex !important;
         align-items: center !important;
@@ -148,31 +138,23 @@ st.markdown("""
         font-size: 0.95rem !important;
         font-weight: 500 !important;
         cursor: pointer !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.4) !important;
         min-height: 44px !important;
     }
-    [data-testid="stSidebarNav"] a * {
-        color: #e8e8ed !important;
-    }
+    [data-testid="stSidebarNav"] a * { color: #e8e8ed !important; }
     [data-testid="stSidebarNav"] a:hover,
     [data-testid="stSidebarNav"] a:active {
         background: #2d2d40 !important;
         border-color: #4d6bfe !important;
     }
-
-    /* Active page = full blue */
     [data-testid="stSidebarNav"] a[aria-current="page"] {
         background: linear-gradient(90deg, #4d6bfe 0%, #3a56e0 100%) !important;
         border-color: #4d6bfe !important;
         border-left-color: #ffffff !important;
-        box-shadow: 0 3px 14px rgba(77,107,254,0.6) !important;
     }
     [data-testid="stSidebarNav"] a[aria-current="page"] * {
         color: #ffffff !important;
         font-weight: 700 !important;
     }
-
-    /* Group headers */
     [data-testid="stSidebarNav"] p {
         color: #8b8b9e !important;
         font-size: 0.75rem !important;
@@ -205,7 +187,6 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
 
 # ---------------------------------------------------
 # GROUPED NAVIGATION
