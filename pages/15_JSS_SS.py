@@ -1,6 +1,8 @@
 import streamlit as st
 import sys, os
 
+from utils.student_sidebar import render_student_sidebar
+
 _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
@@ -12,20 +14,12 @@ except Exception:
         st.markdown("<style>.stApp{background:#0d1b2a;color:#e0e0e0;} header,footer{visibility:hidden;} .ck-title{font-size:2.5rem;font-weight:900;text-align:center;color:#00e5ff;} .ck-sub{text-align:center;color:#8892b0;margin-bottom:2rem;}</style>", unsafe_allow_html=True)
 
 st.set_page_config(page_title="JSS1–SS3", page_icon="🏫", layout="wide")
+
+render_student_sidebar()
 apply_theme()
 
 st.markdown('<div class="ck-title">🏫 JSS1 – SS3</div>', unsafe_allow_html=True)
 st.markdown('<div class="ck-sub">Term-by-term curriculum · Pick your class, term and subject</div>', unsafe_allow_html=True)
-
-with st.sidebar:
-    st.markdown("## 🎓 CoreKnow Student")
-    st.markdown("---")
-    st.page_link("pages/10_CoreKnow_Student.py", label="🏠 Home", use_container_width=True)
-    st.page_link("pages/11_JAMB.py", label="📕 JAMB", use_container_width=True)
-    st.page_link("pages/12_WAEC.py", label="📘 WAEC", use_container_width=True)
-    st.page_link("pages/13_GCE.py", label="📗 GCE", use_container_width=True)
-    st.page_link("pages/14_NECO.py", label="📙 NECO", use_container_width=True)
-    st.page_link("pages/15_JSS_SS.py", label="🏫 JSS1–SS3", use_container_width=True)
 
 st.markdown("### 🎯 Select Your Class, Term & Subject")
 
