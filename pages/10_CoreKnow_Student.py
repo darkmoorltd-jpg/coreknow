@@ -24,7 +24,11 @@ except Exception:
 
 from supabase import create_client
 
+from utils.student_sidebar import render_student_sidebar
+
 st.set_page_config(page_title="CoreKnow Student", page_icon="🎓", layout="wide")
+
+render_student_sidebar()
 apply_theme()
 
 SUPABASE_URL = st.secrets["supabase"]["url"]
@@ -33,16 +37,6 @@ supabase = create_client(SUPABASE_URL, SERVICE_KEY)
 
 st.markdown('<div class="ck-title">🎓 COREKNOW STUDENT</div>', unsafe_allow_html=True)
 st.markdown('<div class="ck-sub">AI-POWERED TUTOR FOR NIGERIAN STUDENTS</div>', unsafe_allow_html=True)
-
-with st.sidebar:
-    st.markdown("## 🎓 CoreKnow Student")
-    st.markdown("---")
-    st.page_link("pages/10_CoreKnow_Student.py", label="🏠 Home", use_container_width=True)
-    st.page_link("pages/11_JAMB.py", label="📕 JAMB", use_container_width=True)
-    st.page_link("pages/12_WAEC.py", label="📘 WAEC", use_container_width=True)
-    st.page_link("pages/13_GCE.py", label="📗 GCE", use_container_width=True)
-    st.page_link("pages/14_NECO.py", label="📙 NECO", use_container_width=True)
-    st.page_link("pages/15_JSS_SS.py", label="🏫 JSS1–SS3", use_container_width=True)
 
 try:
     total_topics = supabase.table("education_syllabi").select("*", count="exact").execute().count or 0
