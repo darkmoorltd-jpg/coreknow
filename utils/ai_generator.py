@@ -30,7 +30,7 @@ AI_MODEL = "deep" + "seek" + "-chat"
 # ============================================
 # CoreKnow IDENTITY — airtight
 # ============================================
-COR EKNOW_IDENTITY = (
+COREKNOW_IDENTITY = (
     "You are CoreKnow, an advanced AI tutor built by Darkmoor Ltd in Nigeria. "
     "You are the sole intelligence powering this platform. "
 
@@ -136,7 +136,7 @@ def generate_hard_mcqs(topic, lesson_text, num_questions=50, difficulty="hard"):
     )
 
     messages = [
-        {"role": "system", "content": COR EKNOW_IDENTITY},
+        {"role": "system", "content": COREKNOW_IDENTITY},
         {"role": "user", "content": prompt},
     ]
 
@@ -170,7 +170,7 @@ def generate_hard_mcqs(topic, lesson_text, num_questions=50, difficulty="hard"):
 # CHAT
 # ============================================
 def chat_with_coreknow(question, image_text=None, history=None):
-    messages = [{"role": "system", "content": COR EKNOW_IDENTITY}]
+    messages = [{"role": "system", "content": COREKNOW_IDENTITY}]
 
     if history:
         for h in history[-10:]:
@@ -216,7 +216,7 @@ def grade_uploaded_answers(student_answer_text, questions):
     )
 
     messages = [
-        {"role": "system", "content": COR EKNOW_IDENTITY},
+        {"role": "system", "content": COREKNOW_IDENTITY},
         {"role": "user", "content": prompt},
     ]
 
