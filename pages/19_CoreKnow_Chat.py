@@ -8,7 +8,11 @@ if _repo_root not in sys.path:
 
 from utils.ai_generator import chat_with_coreknow, extract_text_from_image
 
+from utils.student_sidebar import render_student_sidebar
+
 st.set_page_config(page_title="Ask CoreKnow", page_icon="💬", layout="wide")
+
+render_student_sidebar()
 
 st.markdown("""
 <style>
@@ -27,16 +31,6 @@ st.markdown("""
 
 st.markdown('<div class="ck-title">Ask CoreKnow</div>', unsafe_allow_html=True)
 st.markdown('<div class="ck-sub">TYPE OR UPLOAD ANY QUESTION · GET SOLUTIONS</div>', unsafe_allow_html=True)
-
-with st.sidebar:
-    st.markdown("## CoreKnow Student")
-    st.markdown("---")
-    st.page_link("pages/10_CoreKnow_Student.py", label="Home", use_container_width=True)
-    st.page_link("pages/11_JAMB.py", label="JAMB", use_container_width=True)
-    st.page_link("pages/17_Practice.py", label="Basic Practice", use_container_width=True)
-    st.page_link("pages/18_AI_Practice.py", label="AI Practice", use_container_width=True)
-    st.page_link("pages/19_CoreKnow_Chat.py", label="Ask CoreKnow", use_container_width=True)
-    st.page_link("pages/20_Exam_Mode.py", label="Exam Mode", use_container_width=True)
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
