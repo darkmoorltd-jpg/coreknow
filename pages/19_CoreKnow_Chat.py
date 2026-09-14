@@ -19,7 +19,7 @@ st.set_page_config(
 )
 
 # ============================================
-# DEEPSEEK-STYLE THEME
+# CoreKnow Chat Theme
 # ============================================
 st.markdown("""
 <style>
@@ -28,7 +28,7 @@ st.markdown("""
 
     * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
 
-    /* ==== DeepSeek blue palette ==== */
+    /* ==== CoreKnow blue palette ==== */
     :root {
         --ds-bg: #1a1a1f;
         --ds-sidebar: #141420;
@@ -112,7 +112,7 @@ st.markdown("""
         font-weight: 400;
     }
 
-    /* ==== Suggestion cards (DeepSeek style) ==== */
+    /* ==== Suggestion cards ==== */
     .ds-suggestions {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -371,7 +371,7 @@ if "pending_prompt" not in st.session_state:
 
 
 # ============================================
-# SIDEBAR (DeepSeek-style)
+# SIDEBAR
 # ============================================
 with st.sidebar:
     st.markdown("""
