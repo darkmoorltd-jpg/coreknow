@@ -9,64 +9,100 @@ st.set_page_config(
 
 
 # ---------------------------------------------------
-# FORCE SIDEBAR VISIBLE + CLICKABLE NAV
+# MOBILE SIDEBAR TOGGLE — tap arrow to open/close
 # ---------------------------------------------------
 st.markdown("""
 <style>
-    /* ---- 1. Force sidebar always expanded ---- */
+    /* ==========================================================
+       NATIVE STREAMLIT SIDEBAR TOGGLE — make it BIG on phones
+       ========================================================== */
+
+    /* ---- 1. The "open sidebar" button (shows when collapsed) ---- */
+    [data-testid="stSidebarCollapsedControl"] {
+        display: block !important;
+        visibility: visible !important;
+        position: fixed !important;
+        top: 12px !important;
+        left: 12px !important;
+        z-index: 999999 !important;
+        background: #4d6bfe !important;
+        border: 2px solid #7c8fff !important;
+        border-radius: 12px !important;
+        padding: 8px !important;
+        box-shadow: 0 4px 14px rgba(77,107,254,0.6) !important;
+        cursor: pointer !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] button {
+        background: transparent !important;
+        border: none !important;
+        color: #ffffff !important;
+        font-size: 1.4rem !important;
+        padding: 6px 10px !important;
+        cursor: pointer !important;
+        min-height: 40px !important;
+        min-width: 40px !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] svg {
+        fill: #ffffff !important;
+        width: 26px !important;
+        height: 26px !important;
+    }
+
+    /* ---- 2. The "close sidebar" button (shows when expanded) ---- */
+    [data-testid="stSidebarCollapseButton"] {
+        display: block !important;
+        visibility: visible !important;
+        background: #4d6bfe !important;
+        border-radius: 10px !important;
+        margin: 8px !important;
+        padding: 6px !important;
+        cursor: pointer !important;
+    }
+    [data-testid="stSidebarCollapseButton"] button {
+        background: transparent !important;
+        border: none !important;
+        color: #ffffff !important;
+        cursor: pointer !important;
+        min-height: 36px !important;
+        min-width: 36px !important;
+    }
+    [data-testid="stSidebarCollapseButton"] svg {
+        fill: #ffffff !important;
+        width: 22px !important;
+        height: 22px !important;
+    }
+
+    /* ---- 3. Sidebar itself — normal overlay on mobile ---- */
     section[data-testid="stSidebar"],
     [data-testid="stSidebar"] {
-        display: block !important;
-        visibility: visible !important;
-        transform: none !important;
-        margin-left: 0 !important;
-        left: 0 !important;
-        width: 300px !important;
-        min-width: 300px !important;
-        max-width: 300px !important;
         background: #141420 !important;
         border-right: 1px solid #2a2a3a !important;
-        opacity: 1 !important;
-        z-index: 999999 !important;
+        z-index: 999998 !important;
+    }
+    @media (max-width: 768px) {
+        section[data-testid="stSidebar"],
+        [data-testid="stSidebar"] {
+            width: 85vw !important;
+            min-width: 85vw !important;
+            max-width: 85vw !important;
+        }
     }
 
-    /* ---- 2. Hide the collapse/close button ---- */
-    [data-testid="stSidebarCollapseButton"],
-    [data-testid="stSidebarCollapsedControl"],
-    button[kind="header"] {
-        display: none !important;
-    }
-
-    /* ---- 3. Force main content to respect sidebar ---- */
-    .main .block-container,
-    section.main .block-container {
-        margin-left: 0 !important;
-    }
-
-    /* ---- 4. Sidebar nav container ---- */
-    [data-testid="stSidebarNav"] {
-        display: block !important;
-        visibility: visible !important;
-        padding: 0.5rem 0 !important;
-    }
+    /* ==========================================================
+       NAV ITEMS — visible cards when sidebar is open
+       ========================================================== */
     [data-testid="stSidebarNav"] ul {
         padding: 0 !important;
         margin: 0 !important;
         list-style: none !important;
-        display: block !important;
     }
     [data-testid="stSidebarNav"] li {
-        display: block !important;
         margin: 2px 0 !important;
         padding: 0 !important;
     }
-
-    /* ---- 5. Every nav link = big obvious tappable card ---- */
     [data-testid="stSidebarNav"] a {
         display: flex !important;
         align-items: center !important;
-        visibility: visible !important;
-        opacity: 1 !important;
         background: #21212d !important;
         border: 1px solid #3a3a4d !important;
         border-left: 4px solid #4d6bfe !important;
@@ -78,24 +114,19 @@ st.markdown("""
         font-size: 0.95rem !important;
         font-weight: 500 !important;
         cursor: pointer !important;
-        transition: all 0.15s !important;
         box-shadow: 0 2px 4px rgba(0,0,0,0.4) !important;
         min-height: 44px !important;
-        box-sizing: border-box !important;
     }
     [data-testid="stSidebarNav"] a * {
         color: #e8e8ed !important;
-        visibility: visible !important;
-        opacity: 1 !important;
     }
-    [data-testid="stSidebarNav"] a:hover {
+    [data-testid="stSidebarNav"] a:hover,
+    [data-testid="stSidebarNav"] a:active {
         background: #2d2d40 !important;
         border-color: #4d6bfe !important;
-        border-left-color: #7c8fff !important;
-        transform: translateX(2px);
     }
 
-    /* ---- 6. Active page = full blue, unmissable ---- */
+    /* Active page = full blue */
     [data-testid="stSidebarNav"] a[aria-current="page"] {
         background: linear-gradient(90deg, #4d6bfe 0%, #3a56e0 100%) !important;
         border-color: #4d6bfe !important;
@@ -107,24 +138,21 @@ st.markdown("""
         font-weight: 700 !important;
     }
 
-    /* ---- 7. Group headers ---- */
-    [data-testid="stSidebarNav"] > ul > li > div > span,
+    /* Group headers */
+    [data-testid="stSidebarNav"] p,
     [data-testid="stSidebarNav"] header,
-    [data-testid="stSidebarNav"] p {
+    [data-testid="stSidebarNav"] span {
         color: #8b8b9e !important;
+    }
+    [data-testid="stSidebarNav"] p {
         font-size: 0.75rem !important;
         font-weight: 700 !important;
         letter-spacing: 1.5px !important;
         text-transform: uppercase !important;
-        visibility: visible !important;
-        opacity: 1 !important;
     }
 
-    /* ---- 8. Custom buttons in sidebar ---- */
+    /* Custom buttons in sidebar */
     [data-testid="stSidebar"] .stButton > button {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
         background: #21212d !important;
         border: 1px solid #3a3a4d !important;
         border-left: 4px solid #4d6bfe !important;
@@ -144,16 +172,6 @@ st.markdown("""
         background: #2d2d40 !important;
         border-color: #4d6bfe !important;
         color: #ffffff !important;
-    }
-
-    /* ---- 9. MOBILE: force sidebar to overlay, not hide ---- */
-    @media (max-width: 768px) {
-        section[data-testid="stSidebar"],
-        [data-testid="stSidebar"] {
-            width: 85vw !important;
-            min-width: 85vw !important;
-            max-width: 85vw !important;
-        }
     }
 </style>
 """, unsafe_allow_html=True)
