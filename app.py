@@ -9,15 +9,48 @@ st.set_page_config(
 
 
 # ---------------------------------------------------
-# MOBILE SIDEBAR TOGGLE — tap arrow to open/close
+# SIDEBAR — fully hidden when closed, full when open
 # ---------------------------------------------------
 st.markdown("""
 <style>
-    /* ==========================================================
-       NATIVE STREAMLIT SIDEBAR TOGGLE — make it BIG on phones
-       ========================================================== */
+    /* =========================================================
+       CLOSED STATE — sidebar completely off-screen
+       ========================================================= */
+    section[data-testid="stSidebar"][aria-expanded="false"] {
+        transform: translateX(-100%) !important;
+        margin-left: -320px !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
 
-    /* ---- 1. The "open sidebar" button (shows when collapsed) ---- */
+    /* =========================================================
+       OPEN STATE — sidebar full width, standard Streamlit
+       ========================================================= */
+    section[data-testid="stSidebar"][aria-expanded="true"] {
+        transform: translateX(0) !important;
+        margin-left: 0 !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        background: #141420 !important;
+        border-right: 1px solid #2a2a3a !important;
+        z-index: 999998 !important;
+    }
+
+    @media (max-width: 768px) {
+        section[data-testid="stSidebar"][aria-expanded="true"] {
+            width: 85vw !important;
+            min-width: 85vw !important;
+            max-width: 85vw !important;
+        }
+    }
+
+    /* =========================================================
+       TOGGLE BUTTON — always floating top-left, big, blue
+       ========================================================= */
     [data-testid="stSidebarCollapsedControl"] {
         display: block !important;
         visibility: visible !important;
@@ -28,8 +61,8 @@ st.markdown("""
         background: #4d6bfe !important;
         border: 2px solid #7c8fff !important;
         border-radius: 12px !important;
-        padding: 8px !important;
-        box-shadow: 0 4px 14px rgba(77,107,254,0.6) !important;
+        padding: 6px !important;
+        box-shadow: 0 4px 16px rgba(77,107,254,0.7) !important;
         cursor: pointer !important;
     }
     [data-testid="stSidebarCollapsedControl"] button {
@@ -42,55 +75,56 @@ st.markdown("""
         min-height: 40px !important;
         min-width: 40px !important;
     }
-    [data-testid="stSidebarCollapsedControl"] svg {
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="stSidebarCollapsedControl"] svg path {
         fill: #ffffff !important;
+        color: #ffffff !important;
         width: 26px !important;
         height: 26px !important;
     }
 
-    /* ---- 2. The "close sidebar" button (shows when expanded) ---- */
+    /* =========================================================
+       CLOSE BUTTON — inside sidebar, big, blue, easy to tap
+       ========================================================= */
     [data-testid="stSidebarCollapseButton"] {
         display: block !important;
         visibility: visible !important;
         background: #4d6bfe !important;
-        border-radius: 10px !important;
-        margin: 8px !important;
-        padding: 6px !important;
+        border: 2px solid #7c8fff !important;
+        border-radius: 12px !important;
+        margin: 10px !important;
+        padding: 4px !important;
         cursor: pointer !important;
+        box-shadow: 0 4px 12px rgba(77,107,254,0.6) !important;
     }
     [data-testid="stSidebarCollapseButton"] button {
         background: transparent !important;
         border: none !important;
         color: #ffffff !important;
         cursor: pointer !important;
-        min-height: 36px !important;
-        min-width: 36px !important;
+        min-height: 40px !important;
+        min-width: 40px !important;
     }
-    [data-testid="stSidebarCollapseButton"] svg {
+    [data-testid="stSidebarCollapseButton"] svg,
+    [data-testid="stSidebarCollapseButton"] svg path {
         fill: #ffffff !important;
+        color: #ffffff !important;
         width: 22px !important;
         height: 22px !important;
     }
 
-    /* ---- 3. Sidebar itself — normal overlay on mobile ---- */
-    section[data-testid="stSidebar"],
-    [data-testid="stSidebar"] {
-        background: #141420 !important;
-        border-right: 1px solid #2a2a3a !important;
-        z-index: 999998 !important;
-    }
-    @media (max-width: 768px) {
-        section[data-testid="stSidebar"],
-        [data-testid="stSidebar"] {
-            width: 85vw !important;
-            min-width: 85vw !important;
-            max-width: 85vw !important;
-        }
+    /* =========================================================
+       MAIN CONTENT — full width when sidebar closed
+       ========================================================= */
+    section.main,
+    .main {
+        margin-left: 0 !important;
+        transition: margin-left 0.2s !important;
     }
 
-    /* ==========================================================
-       NAV ITEMS — visible cards when sidebar is open
-       ========================================================== */
+    /* =========================================================
+       NAV ITEMS — cards when sidebar is open
+       ========================================================= */
     [data-testid="stSidebarNav"] ul {
         padding: 0 !important;
         margin: 0 !important;
@@ -139,12 +173,8 @@ st.markdown("""
     }
 
     /* Group headers */
-    [data-testid="stSidebarNav"] p,
-    [data-testid="stSidebarNav"] header,
-    [data-testid="stSidebarNav"] span {
-        color: #8b8b9e !important;
-    }
     [data-testid="stSidebarNav"] p {
+        color: #8b8b9e !important;
         font-size: 0.75rem !important;
         font-weight: 700 !important;
         letter-spacing: 1.5px !important;
