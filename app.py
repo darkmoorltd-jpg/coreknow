@@ -12,15 +12,17 @@ st.set_page_config(
 # GROUPED NAVIGATION
 # ---------------------------------------------------
 pages = {
+    "🧠 CoreKnow Brain": [
+        st.Page("pages/1_CoreKnow_Brain.py", title="Home", icon="🏠", default=True),
+    ],
     "🎓 CoreKnow Student": [
-        st.Page("pages/10_CoreKnow_Student.py", title="Home", icon="🏠", default=True),
+        st.Page("pages/10_CoreKnow_Student.py", title="Student Hub", icon="🎓"),
     ],
     "📚 Exams": [
         st.Page("pages/11_JAMB.py", title="JAMB", icon="📕"),
         st.Page("pages/12_WAEC.py", title="WAEC", icon="📘"),
         st.Page("pages/13_GCE.py", title="GCE", icon="📗"),
-        st.Page("pages/14_NECO.py", title="NECO", icon="📙"),
-        st.Page("pages/15_JSS_SS.py", title="JSS1 - SS3", icon="🏫"),
+        st.Page("pages/14_NECO.py", title="NECO", icon="🏫"),
     ],
     "✏️ Study Tools": [
         st.Page("pages/17_Practice.py", title="Basic Practice", icon="✏️"),
