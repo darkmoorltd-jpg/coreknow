@@ -7,7 +7,11 @@ if _repo_root not in sys.path:
 
 from supabase import create_client
 
+from utils.student_sidebar import render_student_sidebar
+
 st.set_page_config(page_title="JAMB", page_icon="📕", layout="wide")
+
+render_student_sidebar()
 
 st.markdown("""
 <style>
@@ -73,16 +77,6 @@ except Exception as e:
 
 st.markdown('<div class="ck-title">📕 JAMB</div>', unsafe_allow_html=True)
 st.markdown('<div class="ck-sub">UTME PREPARATION · CLICK A TOPIC TO OPEN LESSON</div>', unsafe_allow_html=True)
-
-with st.sidebar:
-    st.markdown("## 🎓 CoreKnow Student")
-    st.markdown("---")
-    st.page_link("pages/10_CoreKnow_Student.py", label="🏠 Home", use_container_width=True)
-    st.page_link("pages/11_JAMB.py", label="📕 JAMB", use_container_width=True)
-    st.page_link("pages/12_WAEC.py", label="📘 WAEC", use_container_width=True)
-    st.page_link("pages/13_GCE.py", label="📗 GCE", use_container_width=True)
-    st.page_link("pages/14_NECO.py", label="📙 NECO", use_container_width=True)
-    st.page_link("pages/15_JSS_SS.py", label="🏫 JSS1–SS3", use_container_width=True)
 
 try:
     res = supabase.table("education_syllabi").select("id, subject, topic_number, topic_title, subtopics, learning_objectives").eq("exam", "JAMB").order("subject").order("topic_number").execute()
