@@ -1,6 +1,8 @@
 import streamlit as st
 import sys, os
 
+from utils.student_sidebar import render_student_sidebar
+
 _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
@@ -17,20 +19,12 @@ except Exception:
     CURRICULUM = {}
 
 st.set_page_config(page_title="WAEC", page_icon="📘", layout="wide")
+
+render_student_sidebar()
 apply_theme()
 
 st.markdown('<div class="ck-title">📘 WAEC</div>', unsafe_allow_html=True)
 st.markdown('<div class="ck-sub">Coming soon — content is being prepared</div>', unsafe_allow_html=True)
-
-with st.sidebar:
-    st.markdown("## 🎓 CoreKnow Student")
-    st.markdown("---")
-    st.page_link("pages/10_CoreKnow_Student.py", label="🏠 Home", use_container_width=True)
-    st.page_link("pages/11_JAMB.py", label="📕 JAMB", use_container_width=True)
-    st.page_link("pages/12_WAEC.py", label="📘 WAEC", use_container_width=True)
-    st.page_link("pages/13_GCE.py", label="📗 GCE", use_container_width=True)
-    st.page_link("pages/14_NECO.py", label="📙 NECO", use_container_width=True)
-    st.page_link("pages/15_JSS_SS.py", label="🏫 JSS1–SS3", use_container_width=True)
 
 st.info("📚 This section is being populated. **JAMB → Chemistry** is fully ready with 18 topics.")
 st.markdown("### 🚀 What's Coming")
