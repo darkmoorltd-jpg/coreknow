@@ -206,6 +206,7 @@ pages = {
         st.Page("pages/15_JSS_SS.py", title="JSS1 - SS3", icon="🏫"),
     ],
     "✏️ Study Tools": [
+        st.Page("pages/16_Topic_View.py", title="Topic View", icon="📖"),
         st.Page("pages/17_Practice.py", title="Basic Practice", icon="✏️"),
         st.Page("pages/18_AI_Practice.py", title="AI Practice (50 Qs)", icon="🧠"),
         st.Page("pages/20_Exam_Mode.py", title="Exam Mode", icon="📝"),
