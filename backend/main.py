@@ -847,6 +847,203 @@ def import_stats():
     except Exception as e:
         return {"error": str(e)[:200]}
 
+
+
+# ============================================
+# AI PHOTO / HOMEWORK SCANNER
+# ============================================
+class ScanRequest(BaseModel):
+    user_id: str = ""
+    text: str
+    language: str = "en"
+
+
+@app.post("/api/scan/ask")
+async def scan_ask(req: ScanRequest):
+    if not DEEPSEEK_KEY:
+        return {"ok": False, "error": "DEEPSEEK not configured"}
+
+    lang_note = ""
+    if req.language == "pidgin":
+        lang_note = " Answer in Nigerian Pidgin English."
+    elif req.language == "yoruba":
+        lang_note = " Answer in Yoruba."
+    elif req.language == "igbo":
+        lang_note = " Answer in Igbo."
+    elif req.language == "hausa":
+        lang_note = " Answer in Hausa."
+
+    system = (
+        "You are CoreKnow, an AI tutor for Nigerian students. "
+        "Read the question (possibly OCR'd from a photo) and solve it step by step. "
+        "Be clear and encouraging." + lang_note
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            r = await client.post(
+                "https://api.deepseek.com/v1/chat/completions",
+                headers={"Authorization": "Bearer " + DEEPSEEK_KEY},
+                json={
+                    "model": "deepseek-chat",
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": req.text},
+                    ],
+                    "temperature": 0.7,
+                },
+            )
+            data = r.json()
+
+        answer = data["choices"][0]["message"]["content"]
+        try:
+            sb.table("photo_scans").insert({
+                "user_id": req.user_id,
+                "extracted_text": req.text,
+                "ai_answer": answer,
+            }).execute()
+        except Exception:
+            pass
+        return {"ok": True, "answer": answer}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:300]}
+
+
+# ============================================
+# AI MEMORY
+# ============================================
+@app.post("/api/memory/save")
+def save_memory(req: ScanRequest):
+    try:
+        sb.table("ai_memory").insert({
+            "user_id": req.user_id,
+            "topic": req.language,
+            "question": req.text[:500],
+            "answer": "",
+        }).execute()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+@app.get("/api/memory/{user_id}")
+def get_memory(user_id: str, limit: int = 20):
+    try:
+        r = sb.table("ai_memory").select("*") \
+            .eq("user_id", user_id) \
+            .order("created_at", desc=True) \
+            .limit(limit).execute()
+        return {"history": r.data}
+    except Exception as e:
+        return {"history": [], "error": str(e)[:200]}
+
+
+# ============================================
+# WEAK TOPICS
+# ============================================
+class WeakRequest(BaseModel):
+    user_id: str
+    subject: str
+    topic: str
+    correct: bool
+
+
+@app.post("/api/weak/record")
+def record_weak(req: WeakRequest):
+    try:
+        ex = sb.table("weak_topics").select("*") \
+            .eq("user_id", req.user_id) \
+            .eq("subject", req.subject) \
+            .eq("topic", req.topic).execute()
+        if ex.data:
+            row = ex.data[0]
+            new_attempts = row["attempts"] + 1
+            new_correct = row["correct"] + (1 if req.correct else 0)
+            acc = round(new_correct / new_attempts * 100, 2)
+            sb.table("weak_topics").update({
+                "attempts": new_attempts,
+                "correct": new_correct,
+                "accuracy": acc,
+            }).eq("id", row["id"]).execute()
+        else:
+            sb.table("weak_topics").insert({
+                "user_id": req.user_id,
+                "subject": req.subject,
+                "topic": req.topic,
+                "attempts": 1,
+                "correct": 1 if req.correct else 0,
+                "accuracy": 100.0 if req.correct else 0.0,
+            }).execute()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+@app.get("/api/weak/{user_id}")
+def get_weak(user_id: str):
+    try:
+        r = sb.table("weak_topics").select("*") \
+            .eq("user_id", user_id) \
+            .order("accuracy").execute()
+        return {"topics": r.data}
+    except Exception as e:
+        return {"topics": [], "error": str(e)[:200]}
+
+
+# ============================================
+# PARENT EMAIL (weekly report)
+# ============================================
+@app.post("/api/parent/email-report/{parent_id}")
+def email_report(parent_id: str):
+    try:
+        links = sb.table("parent_links").select("*") \
+            .eq("parent_id", parent_id).execute()
+        if not links.data:
+            return {"ok": False, "error": "No linked children"}
+
+        report = []
+        for link in links.data:
+            cid = link["child_id"]
+            streak = sb.table("streaks").select("*").eq("user_id", cid).execute()
+            weak = sb.table("weak_topics").select("*").eq("user_id", cid).order("accuracy").limit(3).execute()
+            report.append({
+                "child_id": cid,
+                "streak": streak.data[0] if streak.data else None,
+                "weakest_topics": weak.data,
+            })
+            try:
+                sb.table("parent_links").update({
+                    "last_email_at": "now()",
+                }).eq("id", link["id"]).execute()
+            except Exception:
+                pass
+
+        return {"ok": True, "report": report}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+@app.post("/api/parent/set-frequency")
+def set_frequency(req: ScanRequest):
+    try:
+        sb.table("parent_links").update({"email_frequency": req.text}) \
+            .eq("parent_id", req.user_id).execute()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+# ============================================
+# LANGUAGE PREFERENCE
+# ============================================
+@app.post("/api/language/set")
+def set_language(req: ScanRequest):
+    try:
+        sb.table("subscriptions").upsert({"user_id": req.user_id, "language": req.text}).execute()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
