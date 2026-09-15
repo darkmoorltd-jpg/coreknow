@@ -64,6 +64,25 @@ def get_lesson(syllabus_id: int):
     lesson = sb.table("education_lessons").select("*").eq("syllabus_id", syllabus_id).execute()
     return {"syllabus": syl.data[0], "lesson": lesson.data[0] if lesson.data else None}
 
+class TrackRequest(BaseModel):
+    event: str
+    user_id: str = ""
+    data: dict = {}
+
+
+@app.post("/api/track")
+async def track(req: TrackRequest):
+    try:
+        sb.table("analytics_events").insert({
+            "event": req.event,
+            "user_id": req.user_id,
+            "data": req.data,
+        }).execute()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
