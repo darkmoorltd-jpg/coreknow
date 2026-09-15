@@ -1220,6 +1220,238 @@ def analytics_summary():
     except Exception as e:
         return {"error": str(e)[:200]}
 
+
+
+# ============================================
+# VOICE QUERIES
+# ============================================
+class VoiceAskRequest(BaseModel):
+    user_id: str = ""
+    transcript: str
+    language: str = "en"
+    duration_ms: int = 0
+
+
+@app.post("/api/voice/ask")
+async def voice_ask(req: VoiceAskRequest):
+    if not DEEPSEEK_KEY:
+        return {"ok": False, "error": "DEEPSEEK not configured"}
+
+    system = (
+        "You are CoreKnow, an AI tutor for Nigerian students. "
+        "The user asked by voice. Answer clearly, step by step."
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            r = await client.post(
+                "https://api.deepseek.com/v1/chat/completions",
+                headers={"Authorization": "Bearer " + DEEPSEEK_KEY},
+                json={
+                    "model": "deepseek-chat",
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": req.transcript},
+                    ],
+                    "temperature": 0.7,
+                },
+            )
+            data = r.json()
+
+        answer = data["choices"][0]["message"]["content"]
+        try:
+            sb.table("voice_history").insert({
+                "user_id": req.user_id,
+                "transcript": req.transcript,
+                "ai_answer": answer,
+                "language": req.language,
+                "duration_ms": req.duration_ms,
+            }).execute()
+        except Exception:
+            pass
+        return {"ok": True, "answer": answer}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:300]}
+
+
+@app.get("/api/voice/history/{user_id}")
+def voice_history(user_id: str, limit: int = 30):
+    try:
+        r = sb.table("voice_history").select("*") \
+            .eq("user_id", user_id) \
+            .order("created_at", desc=True) \
+            .limit(limit).execute()
+        return {"history": r.data}
+    except Exception as e:
+        return {"history": [], "error": str(e)[:200]}
+
+
+# ============================================
+# ELI5 MODE
+# ============================================
+class Eli5Request(BaseModel):
+    concept: str
+    subject: str = ""
+
+
+@app.post("/api/eli5")
+async def eli5(req: Eli5Request):
+    if not DEEPSEEK_KEY:
+        return {"ok": False, "error": "DEEPSEEK not configured"}
+
+    prompt = (
+        "Explain '" + req.concept + "' in the simplest possible way, "
+        "as if to a 10-year-old Nigerian child. Use everyday Nigerian examples "
+        "(food, football, market, family). Keep it under 200 words. "
+        "Use short sentences. End with a one-line summary in bold."
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=45) as client:
+            r = await client.post(
+                "https://api.deepseek.com/v1/chat/completions",
+                headers={"Authorization": "Bearer " + DEEPSEEK_KEY},
+                json={
+                    "model": "deepseek-chat",
+                    "messages": [
+                        {"role": "system", "content": "You explain hard things simply."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.8,
+                },
+            )
+            data = r.json()
+        return {"ok": True, "explanation": data["choices"][0]["message"]["content"]}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:300]}
+
+
+# ============================================
+# ESSAY GRADING
+# ============================================
+class EssayRequest(BaseModel):
+    user_id: str = ""
+    subject: str
+    essay_text: str
+    max_score: int = 100
+
+
+@app.post("/api/essay/grade")
+async def grade_essay(req: EssayRequest):
+    if not DEEPSEEK_KEY:
+        return {"ok": False, "error": "DEEPSEEK not configured"}
+
+    prompt = (
+        "You are a JAMB/WAEC examiner. Grade this " + req.subject + " essay out of " + str(req.max_score) + ". "
+        "Return ONLY JSON: "
+        '{"score": number, "feedback": "2-3 sentences", "strengths": ["..."], "improvements": ["..."]}. '
+        "Be fair and encouraging.\n\nESSAY:\n" + req.essay_text
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=90) as client:
+            r = await client.post(
+                "https://api.deepseek.com/v1/chat/completions",
+                headers={"Authorization": "Bearer " + DEEPSEEK_KEY},
+                json={
+                    "model": "deepseek-chat",
+                    "messages": [
+                        {"role": "system", "content": "You are a strict but fair Nigerian examiner. Return JSON only."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.3,
+                },
+            )
+            data = r.json()
+
+        raw = data["choices"][0]["message"]["content"].strip()
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        import json as _j
+        result = _j.loads(raw)
+
+        sb.table("essay_grades").insert({
+            "user_id": req.user_id,
+            "subject": req.subject,
+            "essay_text": req.essay_text[:5000],
+            "score": int(result.get("score", 0)),
+            "max_score": req.max_score,
+            "feedback": result.get("feedback", ""),
+            "strengths": result.get("strengths", []),
+            "improvements": result.get("improvements", []),
+        }).execute()
+
+        return {"ok": True, "result": result}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:300]}
+
+
+# ============================================
+# CAPTIONS
+# ============================================
+@app.get("/api/captions/{lesson_id}")
+def get_captions(lesson_id: int):
+    try:
+        r = sb.table("lesson_captions").select("*").eq("lesson_id", lesson_id).execute()
+        if r.data:
+            return {"captions": r.data[0]["captions"]}
+        return {"captions": []}
+    except Exception as e:
+        return {"captions": [], "error": str(e)[:200]}
+
+
+class CaptionGenRequest(BaseModel):
+    lesson_id: int
+    lesson_title: str
+    lesson_text: str
+
+
+@app.post("/api/captions/generate")
+async def generate_captions(req: CaptionGenRequest):
+    if not DEEPSEEK_KEY:
+        return {"ok": False, "error": "DEEPSEEK not configured"}
+
+    prompt = (
+        "Create 30 short captions (max 12 words each) from this lesson. "
+        "Return ONLY JSON array of strings. Lesson title: " + req.lesson_title + ". "
+        "Lesson excerpt:\n" + req.lesson_text[:4000]
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            r = await client.post(
+                "https://api.deepseek.com/v1/chat/completions",
+                headers={"Authorization": "Bearer " + DEEPSEEK_KEY},
+                json={
+                    "model": "deepseek-chat",
+                    "messages": [
+                        {"role": "system", "content": "Return valid JSON only."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.6,
+                },
+            )
+            data = r.json()
+
+        raw = data["choices"][0]["message"]["content"].strip()
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        import json as _j
+        captions = _j.loads(raw)
+
+        sb.table("lesson_captions").upsert({
+            "lesson_id": req.lesson_id,
+            "captions": captions,
+        }, on_conflict="lesson_id").execute()
+
+        return {"ok": True, "captions": captions}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:300]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
