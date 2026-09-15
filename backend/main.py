@@ -14,9 +14,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
-DEEPSEEK_KEY = os.environ["DEEPSEEK_API_KEY"]
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://mzxbndfmeuewmbhwiotc.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...YOUR_SERVICE_KEY")
+DEEPSEEK_KEY = os.environ.get("DEEPSEEK_API_KEY", "sk-YOUR_DEEPSEEK_KEY")
 sb = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 class ChatRequest(BaseModel):
