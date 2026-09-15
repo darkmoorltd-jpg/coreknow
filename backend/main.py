@@ -322,6 +322,32 @@ async def paystack_webhook(request: Request):
 
     return {"ok": True}
 
+
+
+@app.post("/api/trial/start")
+def start_trial(req: InitSubRequest):
+    from datetime import datetime, timedelta, timezone
+    now = datetime.now(timezone.utc)
+    trial_end = now + timedelta(days=7)
+    existing = sb.table("subscriptions").select("*").eq("user_id", req.user_id).execute()
+    if existing.data:
+        row = existing.data[0]
+        if row.get("trial_ends_at"):
+            return {"ok": False, "error": "Trial already used"}
+        sb.table("subscriptions").update({
+            "tier": "pro",
+            "status": "trial",
+            "trial_ends_at": trial_end.isoformat(),
+        }).eq("user_id", req.user_id).execute()
+    else:
+        sb.table("subscriptions").insert({
+            "user_id": req.user_id,
+            "tier": "pro",
+            "status": "trial",
+            "trial_ends_at": trial_end.isoformat(),
+        }).execute()
+    return {"ok": True, "trial_ends_at": trial_end.isoformat()}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
