@@ -9,6 +9,8 @@ const ROWS = [
   { icon: "mic-outline", label: "Voice Tutor", route: "/voice", color: colors.pink },
   { icon: "happy-outline", label: "Explain Simply", route: "/eli5", color: colors.cyan },
   { icon: "create-outline", label: "Grade My Essay", route: "/essay-grade", color: colors.green },
+  { icon: "cloud-download-outline", label: "Offline Library", route: "/offline", color: colors.green },
+  { icon: "cellular-outline", label: "Data & Storage", route: "/data-saver", color: colors.cyan },
   { icon: "camera-outline", label: "Scan Homework", route: "/scan", color: colors.green },
   { icon: "people-outline", label: "Parent Dashboard", route: "/parent", color: colors.pink },
   { icon: "sparkles-outline", label: "AI Practice", route: "/ai-practice", color: colors.violet },
