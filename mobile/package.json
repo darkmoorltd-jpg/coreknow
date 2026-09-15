@@ -24,7 +24,12 @@
     "@expo/vector-icons": "^14.0.2",
     "expo-speech": "~12.0.2",
     "expo-image-picker": "~15.1.1",
-    "expo-speech-recognition": "^1.1.1"
+    "expo-speech-recognition": "^1.1.1",
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "expo-file-system": "~17.0.1",
+    "expo-task-manager": "~11.8.2",
+    "expo-background-fetch": "~12.0.1",
+    "expo-quick-actions": "^3.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
