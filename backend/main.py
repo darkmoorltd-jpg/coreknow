@@ -439,6 +439,223 @@ def join_school(req: InitSubRequest):
     except Exception as e:
         return {"ok": False, "error": str(e)[:200]}
 
+
+
+# ============================================
+# STREAKS
+# ============================================
+@app.post("/api/streaks/touch/{user_id}")
+def touch_user_streak(user_id: str):
+    try:
+        r = sb.rpc("touch_streak", {"p_user_id": user_id}).execute()
+        return {"ok": True, "streak": r.data[0] if r.data else None}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+@app.get("/api/streaks/{user_id}")
+def get_user_streak(user_id: str):
+    try:
+        r = sb.table("streaks").select("*").eq("user_id", user_id).execute()
+        return {"streak": r.data[0] if r.data else None}
+    except Exception as e:
+        return {"streak": None, "error": str(e)[:200]}
+
+
+# ============================================
+# BOOKMARKS
+# ============================================
+class BookmarkRequest(BaseModel):
+    user_id: str
+    lesson_id: int
+
+
+@app.post("/api/bookmarks/toggle")
+def toggle_bookmark(req: BookmarkRequest):
+    try:
+        existing = sb.table("bookmarks").select("*") \
+            .eq("user_id", req.user_id).eq("lesson_id", req.lesson_id).execute()
+        if existing.data:
+            sb.table("bookmarks").delete() \
+                .eq("user_id", req.user_id).eq("lesson_id", req.lesson_id).execute()
+            return {"ok": True, "bookmarked": False}
+        sb.table("bookmarks").insert({"user_id": req.user_id, "lesson_id": req.lesson_id}).execute()
+        return {"ok": True, "bookmarked": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+@app.get("/api/bookmarks/{user_id}")
+def list_bookmarks(user_id: str):
+    try:
+        bm = sb.table("bookmarks").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
+        ids = [b["lesson_id"] for b in bm.data]
+        if not ids:
+            return {"bookmarks": []}
+        lessons = sb.table("education_lessons").select("id, topic_title").in_("id", ids).execute()
+        lessons_map = {l["id"]: l for l in lessons.data}
+        out = []
+        for b in bm.data:
+            if b["lesson_id"] in lessons_map:
+                out.append({"lesson_id": b["lesson_id"], "topic_title": lessons_map[b["lesson_id"]]["topic_title"], "bookmarked_at": b["created_at"]})
+        return {"bookmarks": out}
+    except Exception as e:
+        return {"bookmarks": [], "error": str(e)[:200]}
+
+
+# ============================================
+# NOTES
+# ============================================
+class NoteRequest(BaseModel):
+    user_id: str
+    lesson_id: int
+    content: str
+
+
+@app.post("/api/notes/save")
+def save_note(req: NoteRequest):
+    try:
+        from datetime import datetime, timezone
+        existing = sb.table("notes").select("*") \
+            .eq("user_id", req.user_id).eq("lesson_id", req.lesson_id).execute()
+        if existing.data:
+            sb.table("notes").update({
+                "content": req.content,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }).eq("id", existing.data[0]["id"]).execute()
+        else:
+            sb.table("notes").insert({"user_id": req.user_id, "lesson_id": req.lesson_id, "content": req.content}).execute()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+@app.get("/api/notes/{user_id}/{lesson_id}")
+def get_note(user_id: str, lesson_id: int):
+    try:
+        r = sb.table("notes").select("*").eq("user_id", user_id).eq("lesson_id", lesson_id).execute()
+        return {"note": r.data[0] if r.data else None}
+    except Exception as e:
+        return {"note": None, "error": str(e)[:200]}
+
+
+# ============================================
+# MCQ BANK
+# ============================================
+@app.get("/api/mcqs")
+def list_mcqs(subject: str = "Chemistry", topic: int = 0, limit: int = 10):
+    try:
+        q = sb.table("mcqs").select("*").eq("subject", subject)
+        if topic > 0:
+            q = q.eq("topic_number", topic)
+        r = q.limit(limit).execute()
+        return {"mcqs": r.data}
+    except Exception as e:
+        return {"mcqs": [], "error": str(e)[:200]}
+
+
+# ============================================
+# REMINDER SETTINGS
+# ============================================
+class ReminderRequest(BaseModel):
+    user_id: str
+    enabled: bool = True
+    hour: int = 19
+    minute: int = 0
+
+
+@app.post("/api/reminders/save")
+def save_reminder(req: ReminderRequest):
+    try:
+        sb.table("reminder_settings").upsert({
+            "user_id": req.user_id,
+            "enabled": req.enabled,
+            "hour": req.hour,
+            "minute": req.minute,
+        }).execute()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+@app.get("/api/reminders/{user_id}")
+def get_reminder(user_id: str):
+    try:
+        r = sb.table("reminder_settings").select("*").eq("user_id", user_id).execute()
+        return {"reminder": r.data[0] if r.data else None}
+    except Exception as e:
+        return {"reminder": None, "error": str(e)[:200]}
+
+
+# ============================================
+# BADGES
+# ============================================
+@app.get("/api/badges/{user_id}")
+def get_badges(user_id: str):
+    try:
+        r = sb.table("badges").select("*").eq("user_id", user_id).execute()
+        return {"badges": r.data}
+    except Exception as e:
+        return {"badges": [], "error": str(e)[:200]}
+
+
+class BadgeAward(BaseModel):
+    user_id: str
+    badge_key: str
+
+
+@app.post("/api/badges/award")
+def award_badge(req: BadgeAward):
+    try:
+        sb.table("badges").upsert({"user_id": req.user_id, "badge_key": req.badge_key}, on_conflict="user_id,badge_key").execute()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+# ============================================
+# PARENT DASHBOARD
+# ============================================
+class ParentLinkRequest(BaseModel):
+    parent_id: str
+    child_email: str
+
+
+@app.post("/api/parent/link")
+def link_parent(req: ParentLinkRequest):
+    try:
+        users = sb.auth.admin.list_users()
+        child = None
+        for u in users:
+            if u.email and u.email.lower() == req.child_email.lower():
+                child = u
+                break
+        if not child:
+            return {"ok": False, "error": "Child account not found"}
+        sb.table("parent_links").upsert({"parent_id": req.parent_id, "child_id": child.id, "status": "active"}, on_conflict="parent_id,child_id").execute()
+        return {"ok": True, "child_id": child.id}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+@app.get("/api/parent/dashboard/{parent_id}")
+def parent_dashboard(parent_id: str):
+    try:
+        links = sb.table("parent_links").select("*").eq("parent_id", parent_id).execute()
+        children = []
+        for link in links.data:
+            cid = link["child_id"]
+            streak = sb.table("streaks").select("*").eq("user_id", cid).execute()
+            badges = sb.table("badges").select("*").eq("user_id", cid).execute()
+            children.append({
+                "child_id": cid,
+                "streak": streak.data[0] if streak.data else None,
+                "badge_count": len(badges.data),
+            })
+        return {"children": children}
+    except Exception as e:
+        return {"children": [], "error": str(e)[:200]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
