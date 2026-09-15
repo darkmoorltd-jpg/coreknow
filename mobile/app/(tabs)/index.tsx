@@ -1,6 +1,7 @@
 import { ScrollView, View, Text, Pressable, StatusBar } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { colors, spacing, radius, font } from "../../constants/theme";
 
 const EXAMS = [
@@ -14,9 +15,8 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       <StatusBar barStyle="light-content" />
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
 
-        {/* Greeting */}
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
           <View>
             <Text style={{ color: colors.textDim, fontSize: 14 }}>Good evening,</Text>
@@ -28,7 +28,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Continue learning hero */}
-        <Pressable style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 2, borderColor: colors.strokeHi, padding: 24, marginBottom: 24 }}>
+        <Pressable onPress={() => router.push("/subject/JAMB?exam=JAMB")} style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 2, borderColor: colors.strokeHi, padding: 24, marginBottom: 24 }}>
           <View style={{ position: "absolute", left: 0, top: 20, bottom: 20, width: 4, backgroundColor: colors.accent, borderTopRightRadius: 4, borderBottomRightRadius: 4 }} />
           <Text style={[font.tiny, { color: colors.accentHi }]}>CONTINUE LEARNING</Text>
           <Text style={[font.h2, { color: colors.text, marginTop: 8 }]}>Chemistry  ·  Lesson 6</Text>
@@ -42,7 +42,26 @@ export default function HomeScreen() {
           </View>
         </Pressable>
 
-        {/* Stats row */}
+        {/* Quick actions grid */}
+        <Text style={[font.tiny, { color: colors.textFaint, marginBottom: 14 }]}>QUICK ACTIONS</Text>
+        <View style={{ flexDirection: "row", gap: 12, marginBottom: 28 }}>
+          <Pressable onPress={() => router.push("/practice")} style={{ flex: 1, backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 2, borderColor: colors.stroke, padding: 18 }}>
+            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cyan, justifyContent: "center", alignItems: "center", marginBottom: 12 }}>
+              <Ionicons name="pencil" size={22} color="#000" />
+            </View>
+            <Text style={[font.h3, { color: colors.text }]}>Practice</Text>
+            <Text style={{ color: colors.textFaint, fontSize: 12, marginTop: 2 }}>Random quiz</Text>
+          </Pressable>
+          <Pressable onPress={() => router.push("/exam-mode")} style={{ flex: 1, backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 2, borderColor: colors.stroke, padding: 18 }}>
+            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.red, justifyContent: "center", alignItems: "center", marginBottom: 12 }}>
+              <Ionicons name="timer" size={22} color="#fff" />
+            </View>
+            <Text style={[font.h3, { color: colors.text }]}>Exam</Text>
+            <Text style={{ color: colors.textFaint, fontSize: 12, marginTop: 2 }}>Timed mode</Text>
+          </Pressable>
+        </View>
+
+        {/* Stats */}
         <View style={{ flexDirection: "row", gap: 12, marginBottom: 28 }}>
           {[
             { n: "5", label: "Topics", color: colors.green },
@@ -57,7 +76,6 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {/* Exams section */}
         <Text style={[font.tiny, { color: colors.textFaint, marginBottom: 14 }]}>EXAMS</Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
           {EXAMS.map((exam) => (
