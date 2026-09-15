@@ -1579,6 +1579,209 @@ def last_sync(user_id: str):
     except Exception as e:
         return {'last_sync': None, 'error': str(e)[:200]}
 
+
+
+# ============================================
+# IN-MEMORY RATE LIMITER
+# ============================================
+_rate_buckets = {}
+
+def _rate_check(key: str, limit: int, window_sec: int) -> bool:
+    import time
+    now = time.time()
+    bucket = _rate_buckets.get(key, [])
+    bucket = [t for t in bucket if now - t < window_sec]
+    if len(bucket) >= limit:
+        _rate_buckets[key] = bucket
+        return False
+    bucket.append(now)
+    _rate_buckets[key] = bucket
+    return True
+
+
+@app.middleware('http')
+async def rate_limit_middleware(request, call_next):
+    path = request.url.path
+    if path.startswith('/api/'):
+        client_ip = request.client.host if request.client else 'anon'
+        if path.startswith('/api/chat') or path.startswith('/api/scan') or path.startswith('/api/ai/'):
+            if not _rate_check(client_ip + ':' + path.split('/')[2], 20, 60):
+                from fastapi.responses import JSONResponse
+                return JSONResponse({'detail': 'Too many requests. Slow down.'}, status_code=429)
+        else:
+            if not _rate_check(client_ip, 200, 60):
+                from fastapi.responses import JSONResponse
+                return JSONResponse({'detail': 'Rate limit exceeded.'}, status_code=429)
+    return await call_next(request)
+
+
+# ============================================
+# PASSWORD RESET
+# ============================================
+class PasswordResetRequest(BaseModel):
+    email: str
+
+
+@app.post('/api/auth/forgot-password')
+def forgot_password(req: PasswordResetRequest):
+    import secrets
+    from datetime import datetime, timedelta, timezone
+    try:
+        users = sb.auth.admin.list_users()
+        user = None
+        for u in users:
+            if u.email and u.email.lower() == req.email.lower():
+                user = u
+                break
+        if not user:
+            return {'ok': True, 'message': 'If that email exists, a code has been sent.'}
+        code = secrets.token_hex(3).upper()
+        expires = (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat()
+        sb.table('password_resets').insert({
+            'user_id': user.id,
+            'email': req.email.lower(),
+            'code': code,
+            'expires_at': expires,
+        }).execute()
+        dev_mode = not os.environ.get('RESEND_API_KEY')
+        result = {'ok': True, 'message': 'Check your email for the reset code.'}
+        if dev_mode:
+            result['dev_code'] = code
+        return result
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class PasswordResetConfirm(BaseModel):
+    email: str
+    code: str
+    new_password: str
+
+
+@app.post('/api/auth/reset-password')
+def reset_password(req: PasswordResetConfirm):
+    from datetime import datetime, timezone
+    try:
+        r = sb.table('password_resets').select('*') \
+            .eq('email', req.email.lower()).eq('code', req.code.upper()) \
+            .eq('used', False).order('created_at', desc=True).limit(1).execute()
+        if not r.data:
+            return {'ok': False, 'error': 'Invalid or used code'}
+        row = r.data[0]
+        exp = datetime.fromisoformat(row['expires_at'].replace('Z', '+00:00'))
+        if exp < datetime.now(timezone.utc):
+            return {'ok': False, 'error': 'Code expired'}
+        sb.auth.admin.update_user_by_id(row['user_id'], {'password': req.new_password})
+        sb.table('password_resets').update({'used': True}).eq('id', row['id']).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# EMAIL VERIFICATION
+# ============================================
+class VerifyRequest(BaseModel):
+    user_id: str
+    email: str
+
+
+@app.post('/api/auth/send-verification')
+def send_verification(req: VerifyRequest):
+    import secrets
+    from datetime import datetime, timedelta, timezone
+    try:
+        code = secrets.token_hex(3).upper()
+        expires = (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
+        sb.table('email_verifications').insert({
+            'user_id': req.user_id,
+            'email': req.email.lower(),
+            'code': code,
+            'expires_at': expires,
+        }).execute()
+        dev_mode = not os.environ.get('RESEND_API_KEY')
+        result = {'ok': True}
+        if dev_mode:
+            result['dev_code'] = code
+        return result
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class VerifyConfirm(BaseModel):
+    user_id: str
+    code: str
+
+
+@app.post('/api/auth/verify-email')
+def verify_email(req: VerifyConfirm):
+    try:
+        r = sb.table('email_verifications').select('*') \
+            .eq('user_id', req.user_id).eq('code', req.code.upper()) \
+            .eq('verified', False).order('created_at', desc=True).limit(1).execute()
+        if not r.data:
+            return {'ok': False, 'error': 'Invalid code'}
+        sb.table('email_verifications').update({'verified': True}).eq('id', r.data[0]['id']).execute()
+        sb.table('subscriptions').upsert({'user_id': req.user_id, 'email_verified': True}).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# A/B TESTING
+# ============================================
+@app.get('/api/ab/variant/{test_key}/{user_id}')
+def get_variant(test_key: str, user_id: str):
+    try:
+        t = sb.table('ab_tests').select('*').eq('test_key', test_key).eq('active', True).execute()
+        if not t.data:
+            return {'variant': 'a'}
+        variants = t.data[0]['variants']
+        ex = sb.table('ab_assignments').select('*').eq('test_key', test_key).eq('user_id', user_id).execute()
+        if ex.data:
+            return {'variant': ex.data[0]['variant']}
+        h = 0
+        for ch in (test_key + user_id):
+            h = (h * 31 + ord(ch)) % 1000
+        idx = h % len(variants)
+        variant = variants[idx]
+        sb.table('ab_assignments').insert({'test_key': test_key, 'user_id': user_id, 'variant': variant}).execute()
+        return {'variant': variant}
+    except Exception as e:
+        return {'variant': 'a', 'error': str(e)[:200]}
+
+
+@app.post('/api/ab/convert/{test_key}/{user_id}')
+def ab_convert(test_key: str, user_id: str):
+    try:
+        sb.table('ab_assignments').update({'converted': True}) \
+            .eq('test_key', test_key).eq('user_id', user_id).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/ab/results')
+def ab_results():
+    try:
+        tests = sb.table('ab_tests').select('*').execute()
+        out = []
+        for t in tests.data:
+            a = sb.table('ab_assignments').select('*').eq('test_key', t['test_key']).execute()
+            counts = {}
+            for row in a.data:
+                v = row['variant']
+                if v not in counts:
+                    counts[v] = {'assigned': 0, 'converted': 0}
+                counts[v]['assigned'] += 1
+                if row.get('converted'):
+                    counts[v]['converted'] += 1
+            out.append({'test_key': t['test_key'], 'variants': counts})
+        return {'results': out}
+    except Exception as e:
+        return {'results': [], 'error': str(e)[:200]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
