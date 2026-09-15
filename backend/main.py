@@ -83,6 +83,59 @@ async def track(req: TrackRequest):
         return {"ok": False, "error": str(e)[:200]}
 
 
+class PaymentRequest(BaseModel):
+    user_id: str
+    amount: int
+    currency: str = "NGN"
+    plan: str = "monthly"
+    reference: str = ""
+    status: str = "pending"
+
+
+@app.get("/api/payments/history/{user_id}")
+def payment_history(user_id: str):
+    try:
+        r = sb.table("payments") \
+            .select("*") \
+            .eq("user_id", user_id) \
+            .order("created_at", desc=True) \
+            .execute()
+        return {"payments": r.data}
+    except Exception as e:
+        return {"payments": [], "error": str(e)[:200]}
+
+
+@app.post("/api/payments")
+async def create_payment(req: PaymentRequest):
+    try:
+        r = sb.table("payments").insert({
+            "user_id": req.user_id,
+            "amount": req.amount,
+            "currency": req.currency,
+            "plan": req.plan,
+            "reference": req.reference,
+            "status": req.status,
+        }).execute()
+        return {"ok": True, "payment": r.data[0] if r.data else None}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+@app.get("/api/payments/status/{user_id}")
+def payment_status(user_id: str):
+    """Check if user has an active subscription."""
+    try:
+        r = sb.table("payments") \
+            .select("*", count="exact") \
+            .eq("user_id", user_id) \
+            .eq("status", "paid") \
+            .execute()
+        active = r.count > 0 if r.count else False
+        return {"active": active, "count": r.count}
+    except Exception as e:
+        return {"active": False, "error": str(e)[:200]}
+
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
