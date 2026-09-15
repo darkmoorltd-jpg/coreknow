@@ -82,3 +82,27 @@ async def chat(req: ChatRequest):
     except (KeyError, IndexError):
         reply = "Sorry, I could not generate a response."
     return {"reply": reply}
+
+@app.get("/api/debug")
+def debug():
+    """Diagnose Supabase connection. Safe to leave in production."""
+    import traceback
+    out = {
+        "supabase_url_set": bool(SUPABASE_URL),
+        "supabase_url_starts_https": SUPABASE_URL.startswith("https://"),
+        "supabase_key_set": bool(SUPABASE_KEY),
+        "supabase_key_len": len(SUPABASE_KEY) if SUPABASE_KEY else 0,
+        "supabase_key_starts_eyj": SUPABASE_KEY.startswith("eyJ") if SUPABASE_KEY else False,
+        "deepseek_key_set": bool(DEEPSEEK_KEY),
+    }
+    try:
+        r = sb.table("education_syllabi").select("id").limit(1).execute()
+        out["supabase_query"] = "OK"
+        out["rows_returned"] = len(r.data)
+        out["sample"] = r.data[0] if r.data else None
+    except Exception as e:
+        out["supabase_query"] = "FAILED"
+        out["error_type"] = type(e).__name__
+        out["error_message"] = str(e)[:500]
+        out["traceback"] = traceback.format_exc()[-800:]
+    return out
