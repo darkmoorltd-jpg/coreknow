@@ -1452,6 +1452,133 @@ async def generate_captions(req: CaptionGenRequest):
     except Exception as e:
         return {"ok": False, "error": str(e)[:300]}
 
+
+
+# ============================================
+# OFFLINE BUNDLE
+# ============================================
+@app.get('/api/offline/bundle/{lesson_id}')
+def offline_bundle(lesson_id: int, data_saver: bool = False):
+    try:
+        les = sb.table('education_lessons').select('*').eq('id', lesson_id).execute()
+        if not les.data:
+            return {'ok': False, 'error': 'Lesson not found'}
+        lesson = les.data[0]
+
+        syl = sb.table('education_syllabi').select('*').eq('id', lesson.get('syllabus_id')).execute()
+        topic_num = syl.data[0]['topic_number'] if syl.data else 0
+        mcq = sb.table('mcqs').select('*').eq('topic_number', topic_num).limit(20).execute()
+
+        text = lesson.get('lesson_text', '')
+        video_urls = []
+        import re as _re
+        for line in text.split(chr(10)):
+            if 'Watch Video' in line and 'http' in line:
+                m = _re.search(r'\(([^)]+)\)', line)
+                if m:
+                    video_urls.append(m.group(1))
+
+        return {
+            'ok': True,
+            'lesson': {
+                'id': lesson['id'],
+                'title': lesson.get('topic_title', ''),
+                'text': text,
+            },
+            'syllabus': syl.data[0] if syl.data else None,
+            'videos': [] if data_saver else video_urls,
+            'mcqs': mcq.data if mcq else [],
+            'version': 1,
+        }
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:300]}
+
+
+@app.get('/api/offline/manifest/{user_id}')
+def offline_manifest(user_id: str):
+    try:
+        r = sb.table('content_versions').select('lesson_id, version, updated_at').execute()
+        return {'versions': r.data}
+    except Exception as e:
+        return {'versions': [], 'error': str(e)[:200]}
+
+
+class OfflineTrackRequest(BaseModel):
+    user_id: str
+    lesson_id: int
+    size_kb: int = 0
+
+
+@app.post('/api/offline/track')
+def track_download(req: OfflineTrackRequest):
+    try:
+        sb.table('offline_downloads').upsert({
+            'user_id': req.user_id,
+            'lesson_id': req.lesson_id,
+            'size_kb': req.size_kb,
+        }, on_conflict='user_id,lesson_id').execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/offline/list/{user_id}')
+def list_downloads(user_id: str):
+    try:
+        r = sb.table('offline_downloads').select('*').eq('user_id', user_id).order('downloaded_at', desc=True).execute()
+        return {'downloads': r.data}
+    except Exception as e:
+        return {'downloads': [], 'error': str(e)[:200]}
+
+
+@app.delete('/api/offline/remove/{user_id}/{lesson_id}')
+def remove_download(user_id: str, lesson_id: int):
+    try:
+        sb.table('offline_downloads').delete().eq('user_id', user_id).eq('lesson_id', lesson_id).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class DataSaverRequest(BaseModel):
+    user_id: str
+    data_saver: bool
+    auto_download_wifi: bool = True
+
+
+@app.post('/api/prefs/data-saver')
+def set_data_saver(req: DataSaverRequest):
+    try:
+        sb.table('subscriptions').upsert({
+            'user_id': req.user_id,
+            'data_saver': req.data_saver,
+            'auto_download_wifi': req.auto_download_wifi,
+        }).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.post('/api/sync/touch/{user_id}')
+def touch_sync(user_id: str, items: int = 0):
+    try:
+        sb.table('sync_log').insert({
+            'user_id': user_id,
+            'items_synced': items,
+        }).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/sync/last/{user_id}')
+def last_sync(user_id: str):
+    try:
+        r = sb.table('sync_log').select('*').eq('user_id', user_id).order('last_sync_at', desc=True).limit(1).execute()
+        return {'last_sync': r.data[0] if r.data else None}
+    except Exception as e:
+        return {'last_sync': None, 'error': str(e)[:200]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
