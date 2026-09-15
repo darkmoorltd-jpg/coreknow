@@ -26,3 +26,9 @@ pytesseract
 transformers
 torch
 librosa
+
+# CoreKnow API (for mobile backend)
+fastapi
+uvicorn
+httpx
+pydantic
