@@ -5,6 +5,7 @@ import { Video, ResizeMode } from "expo-av";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../lib/api";
 import { colors, spacing, radius, font } from "../../constants/theme";
+import { day6 } from "../../lib/day6";
 import { useAuth } from "../../lib/store";
 import { api } from "../../lib/day1";
 import { speak, stopSpeaking } from "../../lib/audio";
@@ -52,6 +53,18 @@ export default function LessonScreen() {
           <Text style={{ color: colors.textDim, fontSize: 12, fontWeight: "600" }}>TOPIC {d.syllabus.topic_number}</Text>
         </View>
 
+        {/* Action buttons */}
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+          <Pressable onPress={readAloud} style={{ flex: 1, backgroundColor: speaking ? colors.red : colors.card, borderWidth: 1, borderColor: colors.stroke, borderRadius: radius.md, padding: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
+            <Ionicons name={speaking ? "stop" : "volume-high"} size={18} color={speaking ? "#fff" : colors.accent} />
+            <Text style={{ color: speaking ? "#fff" : colors.accent, fontWeight: "700", marginLeft: 8, fontSize: 13 }}>{speaking ? "Stop" : "Listen"}</Text>
+          </Pressable>
+          <Pressable onPress={loadCaptions} style={{ flex: 1, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.stroke, borderRadius: radius.md, padding: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
+            <Ionicons name="text" size={18} color={colors.accent} />
+            <Text style={{ color: colors.accent, fontWeight: "700", marginLeft: 8, fontSize: 13 }}>Captions</Text>
+          </Pressable>
+        </View>
+
         {/* Read / Watch toggle */}
         {videoUrls.length > 0 && (
           <View style={{ flexDirection: "row", backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 1, borderColor: colors.stroke, padding: 6, marginBottom: 24 }}>
@@ -84,7 +97,16 @@ export default function LessonScreen() {
           ))
         ) : (
           <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.stroke, padding: 24 }}>
+            {captions.length > 0 ? (
+              <View>
+                <Text style={{ color: colors.accentHi, fontSize: 11, fontWeight: "600", letterSpacing: 1.5, marginBottom: 10 }}>CAPTIONS</Text>
+                {captions.slice(0, 20).map((cap: string, i: number) => (
+                  <Text key={i} style={{ color: colors.text, fontSize: 15, lineHeight: 24, marginBottom: 6 }}>• {cap}</Text>
+                ))}
+              </View>
+            ) : (
             <Text style={{ color: colors.text, fontSize: 15, lineHeight: 26 }}>{bodyText}</Text>
+            )}
           </View>
         )}
 
