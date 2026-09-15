@@ -1782,6 +1782,320 @@ def ab_results():
     except Exception as e:
         return {'results': [], 'error': str(e)[:200]}
 
+
+
+# ============================================
+# ADMIN CHECK
+# ============================================
+def _is_admin(user_id: str) -> bool:
+    try:
+        r = sb.table('subscriptions').select('is_admin').eq('user_id', user_id).execute()
+        return bool(r.data and r.data[0].get('is_admin'))
+    except Exception:
+        return False
+
+
+# ============================================
+# ADMIN: LIST LESSONS
+# ============================================
+@app.get('/api/admin/lessons')
+def admin_list_lessons(admin_id: str):
+    if not _is_admin(admin_id):
+        return {'ok': False, 'error': 'Not admin'}
+    try:
+        les = sb.table('education_lessons').select('*').order('id', desc=True).execute()
+        syl_map = {}
+        syl = sb.table('education_syllabi').select('id, exam, subject, topic_number, topic_title').execute()
+        for s in syl.data:
+            syl_map[s['id']] = s
+        out = []
+        for l in les.data:
+            s = syl_map.get(l.get('syllabus_id'), {})
+            out.append({
+                'id': l['id'],
+                'syllabus_id': l.get('syllabus_id'),
+                'title': l.get('topic_title'),
+                'status': l.get('status', 'published'),
+                'version': l.get('version', 1),
+                'exam': s.get('exam'),
+                'subject': s.get('subject'),
+                'topic_number': s.get('topic_number'),
+            })
+        return {'ok': True, 'lessons': out}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# ADMIN: CREATE + EDIT
+# ============================================
+class LessonSaveRequest(BaseModel):
+    admin_id: str
+    lesson_id: int = 0
+    syllabus_id: int = 0
+    exam: str = 'JAMB'
+    subject: str = 'Chemistry'
+    topic_number: int = 0
+    topic_title: str
+    lesson_text: str
+    status: str = 'published'
+    note: str = ''
+
+
+@app.post('/api/admin/lesson/save')
+def admin_save_lesson(req: LessonSaveRequest):
+    if not _is_admin(req.admin_id):
+        return {'ok': False, 'error': 'Not admin'}
+    from datetime import datetime, timezone
+    try:
+        syl_id = req.syllabus_id
+        if not syl_id and req.topic_number > 0:
+            ex = sb.table('education_syllabi').select('id') \
+                .eq('exam', req.exam).eq('subject', req.subject) \
+                .eq('topic_number', req.topic_number).execute()
+            if ex.data:
+                syl_id = ex.data[0]['id']
+            else:
+                ins = sb.table('education_syllabi').insert({
+                    'exam': req.exam,
+                    'subject': req.subject,
+                    'topic_number': req.topic_number,
+                    'topic_title': req.topic_title,
+                }).execute()
+                syl_id = ins.data[0]['id']
+
+        if req.lesson_id > 0:
+            cur = sb.table('education_lessons').select('*').eq('id', req.lesson_id).execute()
+            if cur.data:
+                cur_v = cur.data[0].get('version', 1)
+                sb.table('lesson_versions').insert({
+                    'lesson_id': req.lesson_id,
+                    'version': cur_v,
+                    'lesson_text': cur.data[0].get('lesson_text', ''),
+                    'topic_title': cur.data[0].get('topic_title', ''),
+                    'saved_by': req.admin_id,
+                    'note': 'auto-snapshot before edit',
+                }).execute()
+                new_v = cur_v + 1
+                sb.table('education_lessons').update({
+                    'lesson_text': req.lesson_text,
+                    'topic_title': req.topic_title,
+                    'status': req.status,
+                    'version': new_v,
+                }).eq('id', req.lesson_id).execute()
+                sb.table('content_versions').upsert({
+                    'lesson_id': req.lesson_id,
+                    'version': new_v,
+                }).execute()
+                return {'ok': True, 'lesson_id': req.lesson_id, 'version': new_v}
+        ins2 = sb.table('education_lessons').insert({
+            'syllabus_id': syl_id,
+            'topic_title': req.topic_title,
+            'lesson_text': req.lesson_text,
+            'status': req.status,
+            'version': 1,
+        }).execute()
+        new_id = ins2.data[0]['id']
+        sb.table('content_versions').upsert({
+            'lesson_id': new_id,
+            'version': 1,
+        }).execute()
+        return {'ok': True, 'lesson_id': new_id, 'version': 1}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:300]}
+
+
+# ============================================
+# ADMIN: BULK IMPORT
+# ============================================
+class BulkImportRequest(BaseModel):
+    admin_id: str
+    exam: str = 'JAMB'
+    subject: str = 'Chemistry'
+    start_topic: int = 7
+    items: list = []
+
+
+@app.post('/api/admin/bulk-import')
+def admin_bulk_import(req: BulkImportRequest):
+    if not _is_admin(req.admin_id):
+        return {'ok': False, 'error': 'Not admin'}
+    try:
+        created = 0
+        failed = 0
+        for i, item in enumerate(req.items):
+            try:
+                topic_num = req.start_topic + i
+                title = item.get('title', 'Topic ' + str(topic_num))
+                text = item.get('text', '')
+                ex = sb.table('education_syllabi').select('id') \
+                    .eq('exam', req.exam).eq('subject', req.subject) \
+                    .eq('topic_number', topic_num).execute()
+                if ex.data:
+                    syl_id = ex.data[0]['id']
+                else:
+                    ins = sb.table('education_syllabi').insert({
+                        'exam': req.exam,
+                        'subject': req.subject,
+                        'topic_number': topic_num,
+                        'topic_title': title,
+                    }).execute()
+                    syl_id = ins.data[0]['id']
+                les = sb.table('education_lessons').select('id') \
+                    .eq('syllabus_id', syl_id).execute()
+                if les.data:
+                    sb.table('education_lessons').update({
+                        'lesson_text': text,
+                        'topic_title': title,
+                    }).eq('id', les.data[0]['id']).execute()
+                else:
+                    sb.table('education_lessons').insert({
+                        'syllabus_id': syl_id,
+                        'topic_title': title,
+                        'lesson_text': text,
+                        'status': 'published',
+                        'version': 1,
+                    }).execute()
+                created += 1
+            except Exception:
+                failed += 1
+        return {'ok': True, 'created': created, 'failed': failed}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:300]}
+
+
+# ============================================
+# ADMIN: VERSION HISTORY
+# ============================================
+@app.get('/api/admin/lesson/{lesson_id}/versions')
+def admin_versions(lesson_id: int, admin_id: str):
+    if not _is_admin(admin_id):
+        return {'ok': False, 'error': 'Not admin'}
+    try:
+        r = sb.table('lesson_versions').select('*').eq('lesson_id', lesson_id).order('version', desc=True).execute()
+        return {'ok': True, 'versions': r.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class RollbackRequest(BaseModel):
+    admin_id: str
+    version: int
+
+
+@app.post('/api/admin/lesson/{lesson_id}/rollback')
+def admin_rollback(lesson_id: int, req: RollbackRequest):
+    if not _is_admin(req.admin_id):
+        return {'ok': False, 'error': 'Not admin'}
+    try:
+        r = sb.table('lesson_versions').select('*') \
+            .eq('lesson_id', lesson_id).eq('version', req.version).execute()
+        if not r.data:
+            return {'ok': False, 'error': 'Version not found'}
+        v = r.data[0]
+        sb.table('education_lessons').update({
+            'lesson_text': v['lesson_text'],
+            'topic_title': v['topic_title'],
+        }).eq('id', lesson_id).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# ADMIN: SCHEDULE
+# ============================================
+class ScheduleRequest(BaseModel):
+    admin_id: str
+    lesson_id: int
+    publish_at: str
+
+
+@app.post('/api/admin/schedule')
+def admin_schedule(req: ScheduleRequest):
+    if not _is_admin(req.admin_id):
+        return {'ok': False, 'error': 'Not admin'}
+    try:
+        sb.table('lesson_schedules').insert({
+            'lesson_id': req.lesson_id,
+            'publish_at': req.publish_at,
+            'created_by': req.admin_id,
+        }).execute()
+        sb.table('education_lessons').update({'status': 'scheduled'}).eq('id', req.lesson_id).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/admin/schedules')
+def admin_schedules(admin_id: str):
+    if not _is_admin(admin_id):
+        return {'ok': False, 'error': 'Not admin'}
+    try:
+        r = sb.table('lesson_schedules').select('*').eq('published', False).order('publish_at').execute()
+        return {'ok': True, 'schedules': r.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# ADMIN: CONTENT ANALYTICS
+# ============================================
+@app.get('/api/admin/analytics')
+def admin_analytics(admin_id: str):
+    if not _is_admin(admin_id):
+        return {'ok': False, 'error': 'Not admin'}
+    try:
+        reads = sb.table('lesson_reads').select('*').execute()
+        counts = {}
+        for r in reads.data:
+            lid = r['lesson_id']
+            if lid not in counts:
+                counts[lid] = {'reads': 0, 'completed': 0, 'total_seconds': 0}
+            counts[lid]['reads'] += 1
+            if r.get('completed'):
+                counts[lid]['completed'] += 1
+            counts[lid]['total_seconds'] += r.get('seconds_spent', 0)
+        sorted_rows = sorted(counts.items(), key=lambda x: -x[1]['reads'])[:20]
+        lessons = sb.table('education_lessons').select('id, topic_title').execute()
+        name_map = {l['id']: l['topic_title'] for l in lessons.data}
+        out = []
+        for lid, agg in sorted_rows:
+            out.append({
+                'lesson_id': lid,
+                'title': name_map.get(lid, 'Unknown'),
+                'reads': agg['reads'],
+                'completed': agg['completed'],
+                'avg_seconds': int(agg['total_seconds'] / agg['reads']) if agg['reads'] > 0 else 0,
+            })
+        return {'ok': True, 'top': out}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# TRACK A READ (any user)
+# ============================================
+class ReadTrackRequest(BaseModel):
+    user_id: str = ''
+    lesson_id: int
+    seconds_spent: int = 0
+    completed: bool = False
+
+
+@app.post('/api/lesson/read')
+def track_read(req: ReadTrackRequest):
+    try:
+        sb.table('lesson_reads').insert({
+            'user_id': req.user_id,
+            'lesson_id': req.lesson_id,
+            'seconds_spent': req.seconds_spent,
+            'completed': req.completed,
+        }).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
