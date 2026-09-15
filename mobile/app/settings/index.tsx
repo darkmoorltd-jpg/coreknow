@@ -10,6 +10,7 @@ const ROWS = [
   { icon: "school-outline", label: "Exam preference", route: "/settings/exam", color: colors.green },
   { icon: "book-outline", label: "Grade level", route: "/settings/grade", color: colors.yellow },
   { icon: "notifications-outline", label: "Notifications", route: "/settings/notifications", color: colors.violet },
+  { icon: "card-outline", label: "Payment history", route: "/payments", color: colors.yellow },
   { icon: "color-palette-outline", label: "Appearance", route: "/settings/appearance", color: colors.cyan },
   { icon: "information-circle-outline", label: "About", route: "/settings/about", color: colors.pink },
 ];
