@@ -14,7 +14,11 @@
       "bundleIdentifier": "com.darkmoor.coreknow"
     },
     "android": {
-      "package": "com.darkmoor.coreknow"
+      "package": "com.darkmoor.coreknow",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#05050a"
+      }
     },
     "plugins": [
       "expo-router"
@@ -24,6 +28,15 @@
     },
     "extra": {
       "apiUrl": "https://coreknow.onrender.com"
+    },
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#05050a"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     }
   }
 }
