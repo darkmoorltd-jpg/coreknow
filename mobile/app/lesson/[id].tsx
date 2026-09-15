@@ -5,9 +5,14 @@ import { Video, ResizeMode } from "expo-av";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../lib/api";
 import { colors, spacing, radius, font } from "../../constants/theme";
+import { useAuth } from "../../lib/store";
+import { api } from "../../lib/day1";
+import { speak, stopSpeaking } from "../../lib/audio";
+import LessonNotes from "../../components/LessonNotes";
 import { useState } from "react";
 
 export default function LessonScreen() {
+  const user = useAuth((s) => s.user);
   const params = useLocalSearchParams();
   const id = Number(params.id);
   const [mode, setMode] = useState<"read" | "watch">("read");
@@ -83,6 +88,7 @@ export default function LessonScreen() {
           </View>
         )}
 
+        <LessonNotes lessonId={id} />
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
