@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../lib/api";
 import { colors, spacing, radius, font } from "../../constants/theme";
 import { day6 } from "../../lib/day6";
+import { isDownloaded, download, remove, getOffline } from "../../lib/offline";
 import { useAuth } from "../../lib/store";
 import { api } from "../../lib/day1";
 import { speak, stopSpeaking } from "../../lib/audio";
@@ -45,6 +46,14 @@ export default function LessonScreen() {
           <Text style={{ color: colors.text, fontSize: 32 }}>‹</Text>
         </Pressable>
         <Text style={[font.h3, { color: colors.text, marginLeft: 16, flex: 1 }]} numberOfLines={1}>{d.syllabus.topic_title}</Text>
+        <Pressable onPress={toggleDownload} style={{ padding: 8, marginLeft: 4 }}>
+          {downloading ? <ActivityIndicator color={colors.accent} size="small" /> :
+            <Ionicons
+              name={downloaded ? "cloud-done" : "cloud-download-outline"}
+              size={22}
+              color={downloaded ? colors.green : colors.accent}
+            />}
+        </Pressable>
         <Text style={{ color: colors.yellow, fontSize: 24 }}>★</Text>
       </View>
 
@@ -111,6 +120,9 @@ export default function LessonScreen() {
         )}
 
         <LessonNotes lessonId={id} />
+        {downloadError ? (
+          <Text style={{ color: colors.red, fontSize: 13, textAlign: "center", marginTop: 12 }}>{downloadError}</Text>
+        ) : null}
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
