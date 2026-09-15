@@ -2753,6 +2753,334 @@ def challenge_leaderboard(challenge_id: int):
     except Exception as e:
         return {'ok': False, 'error': str(e)[:200]}
 
+
+
+# ============================================
+# TUTORS: PROFILE
+# ============================================
+class TutorApplyRequest(BaseModel):
+    user_id: str
+    full_name: str
+    bio: str = ''
+    subjects: list = []
+    rate_per_hour: int = 2000
+    years_experience: int = 0
+    qualification: str = ''
+
+
+@app.post('/api/tutors/apply')
+def tutor_apply(req: TutorApplyRequest):
+    try:
+        ex = sb.table('tutors').select('id').eq('user_id', req.user_id).execute()
+        if ex.data:
+            sb.table('tutors').update({
+                'full_name': req.full_name,
+                'bio': req.bio,
+                'subjects': req.subjects,
+                'rate_per_hour': req.rate_per_hour,
+                'years_experience': req.years_experience,
+                'qualification': req.qualification,
+            }).eq('user_id', req.user_id).execute()
+            return {'ok': True, 'updated': True}
+        sb.table('tutors').insert({
+            'user_id': req.user_id,
+            'full_name': req.full_name,
+            'bio': req.bio,
+            'subjects': req.subjects,
+            'rate_per_hour': req.rate_per_hour,
+            'years_experience': req.years_experience,
+            'qualification': req.qualification,
+        }).execute()
+        return {'ok': True, 'created': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/tutors/list')
+def tutor_list(subject: str = ''):
+    try:
+        r = sb.table('tutors').select('*').eq('is_active', True).eq('is_verified', True).order('avg_rating', desc=True).limit(50).execute()
+        rows = r.data
+        if subject:
+            rows = [x for x in rows if subject in (x.get('subjects') or [])]
+        return {'ok': True, 'tutors': rows}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/tutors/{tutor_id}')
+def tutor_detail(tutor_id: int):
+    try:
+        t = sb.table('tutors').select('*').eq('id', tutor_id).execute()
+        rev = sb.table('tutor_reviews').select('*').eq('tutor_id', tutor_id).order('created_at', desc=True).limit(20).execute()
+        avail = sb.table('tutor_availability').select('*').eq('tutor_id', tutor_id).execute()
+        return {'ok': True, 'tutor': t.data[0] if t.data else None, 'reviews': rev.data, 'availability': avail.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class AvailabilitySet(BaseModel):
+    tutor_id: int
+    slots: list = []
+
+
+@app.post('/api/tutors/availability')
+def tutor_availability_set(req: AvailabilitySet):
+    try:
+        sb.table('tutor_availability').delete().eq('tutor_id', req.tutor_id).execute()
+        for s in req.slots:
+            sb.table('tutor_availability').insert({
+                'tutor_id': req.tutor_id,
+                'day_of_week': s.get('day', 0),
+                'start_hour': s.get('start', 9),
+                'end_hour': s.get('end', 17),
+            }).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# TUTORS: BOOKING
+# ============================================
+class BookingRequest(BaseModel):
+    tutor_id: int
+    student_id: str
+    student_email: str = ''
+    subject: str = 'Chemistry'
+    topic: str = ''
+    scheduled_at: str
+    duration_minutes: int = 60
+    notes: str = ''
+
+
+@app.post('/api/tutors/book')
+def tutor_book(req: BookingRequest):
+    try:
+        t = sb.table('tutors').select('*').eq('id', req.tutor_id).execute()
+        if not t.data:
+            return {'ok': False, 'error': 'Tutor not found'}
+        tutor = t.data[0]
+        rate = tutor['rate_per_hour']
+        hours = req.duration_minutes / 60.0
+        amount = int(rate * hours)
+        platform_fee = int(amount * 0.20)
+        payout = amount - platform_fee
+
+        import secrets
+        room_id = 'CoreKnow-' + secrets.token_hex(4).upper()
+        room_url = 'https://meet.jit.si/' + room_id
+
+        booking = sb.table('tutor_bookings').insert({
+            'tutor_id': req.tutor_id,
+            'student_id': req.student_id,
+            'subject': req.subject,
+            'topic': req.topic,
+            'scheduled_at': req.scheduled_at,
+            'duration_minutes': req.duration_minutes,
+            'amount': amount,
+            'platform_fee': platform_fee,
+            'tutor_payout': payout,
+            'notes': req.notes,
+            'room_url': room_url,
+        }).execute()
+
+        return {
+            'ok': True,
+            'booking': booking.data[0] if booking.data else None,
+            'amount': amount,
+        }
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class ConfirmPaymentRequest(BaseModel):
+    booking_id: int
+    payment_ref: str
+
+
+@app.post('/api/tutors/booking/confirm')
+def booking_confirm(req: ConfirmPaymentRequest):
+    try:
+        sb.table('tutor_bookings').update({
+            'payment_status': 'paid',
+            'payment_ref': req.payment_ref,
+            'status': 'confirmed',
+        }).eq('id', req.booking_id).execute()
+
+        b = sb.table('tutor_bookings').select('*').eq('id', req.booking_id).execute()
+        if b.data:
+            tid = b.data[0]['tutor_id']
+            sb.table('tutor_payouts').insert({
+                'tutor_id': tid,
+                'amount': b.data[0]['tutor_payout'],
+                'status': 'pending',
+                'note': 'Booking #' + str(req.booking_id),
+            }).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/tutors/bookings/{user_id}')
+def booking_list(user_id: str, as_tutor: bool = False):
+    try:
+        if as_tutor:
+            t = sb.table('tutors').select('id').eq('user_id', user_id).execute()
+            if not t.data:
+                return {'ok': True, 'bookings': []}
+            r = sb.table('tutor_bookings').select('*').eq('tutor_id', t.data[0]['id']).order('scheduled_at', desc=True).execute()
+        else:
+            r = sb.table('tutor_bookings').select('*').eq('student_id', user_id).order('scheduled_at', desc=True).execute()
+        return {'ok': True, 'bookings': r.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class ReviewRequest(BaseModel):
+    booking_id: int
+    student_id: str
+    rating: int
+    comment: str = ''
+
+
+@app.post('/api/tutors/review')
+def tutor_review(req: ReviewRequest):
+    try:
+        b = sb.table('tutor_bookings').select('tutor_id').eq('id', req.booking_id).execute()
+        if not b.data:
+            return {'ok': False, 'error': 'Booking not found'}
+        tid = b.data[0]['tutor_id']
+        sb.table('tutor_reviews').upsert({
+            'booking_id': req.booking_id,
+            'tutor_id': tid,
+            'student_id': req.student_id,
+            'rating': req.rating,
+            'comment': req.comment,
+        }, on_conflict='booking_id').execute()
+
+        revs = sb.table('tutor_reviews').select('rating').eq('tutor_id', tid).execute()
+        if revs.data:
+            avg = round(sum(r['rating'] for r in revs.data) / len(revs.data), 2)
+            sb.table('tutors').update({'avg_rating': avg}).eq('id', tid).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# LIVE GROUP CLASSES
+# ============================================
+class LiveCreateRequest(BaseModel):
+    tutor_id: int
+    title: str
+    description: str = ''
+    subject: str = 'Chemistry'
+    scheduled_at: str
+    duration_minutes: int = 60
+    max_students: int = 30
+    price: int = 500
+
+
+@app.post('/api/live/create')
+def live_create(req: LiveCreateRequest):
+    import secrets
+    try:
+        room_id = 'CoreKnow-Live-' + secrets.token_hex(4).upper()
+        room_url = 'https://meet.jit.si/' + room_id
+        r = sb.table('live_classes').insert({
+            'tutor_id': req.tutor_id,
+            'title': req.title,
+            'description': req.description,
+            'subject': req.subject,
+            'scheduled_at': req.scheduled_at,
+            'duration_minutes': req.duration_minutes,
+            'max_students': req.max_students,
+            'price': req.price,
+            'room_url': room_url,
+        }).execute()
+        return {'ok': True, 'class': r.data[0] if r.data else None}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/live/list')
+def live_list(subject: str = ''):
+    try:
+        q = sb.table('live_classes').select('*').eq('status', 'scheduled')
+        if subject:
+            q = q.eq('subject', subject)
+        r = q.order('scheduled_at').limit(50).execute()
+        return {'ok': True, 'classes': r.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class LiveEnrollRequest(BaseModel):
+    class_id: int
+    student_id: str
+    payment_ref: str = ''
+
+
+@app.post('/api/live/enroll')
+def live_enroll(req: LiveEnrollRequest):
+    try:
+        ex = sb.table('live_enrollments').select('id').eq('class_id', req.class_id).eq('student_id', req.student_id).execute()
+        if not ex.data:
+            sb.table('live_enrollments').insert({
+                'class_id': req.class_id,
+                'student_id': req.student_id,
+                'payment_ref': req.payment_ref,
+                'paid': bool(req.payment_ref),
+            }).execute()
+            c = sb.table('live_classes').select('enrolled').eq('id', req.class_id).execute()
+            if c.data:
+                sb.table('live_classes').update({'enrolled': (c.data[0].get('enrolled') or 0) + 1}).eq('id', req.class_id).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/live/{class_id}')
+def live_detail(class_id: int):
+    try:
+        c = sb.table('live_classes').select('*').eq('id', class_id).execute()
+        e = sb.table('live_enrollments').select('*').eq('class_id', class_id).execute()
+        return {'ok': True, 'class': c.data[0] if c.data else None, 'enrollments': e.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# ADMIN: TUTOR MANAGEMENT
+# ============================================
+class VerifyTutorRequest(BaseModel):
+    admin_id: str
+    tutor_id: int
+    verified: bool
+
+
+@app.post('/api/tutors/verify')
+def tutor_verify(req: VerifyTutorRequest):
+    if not _is_admin(req.admin_id):
+        return {'ok': False, 'error': 'Not admin'}
+    try:
+        sb.table('tutors').update({'is_verified': req.verified}).eq('id', req.tutor_id).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/tutors/pending')
+def tutors_pending(admin_id: str):
+    if not _is_admin(admin_id):
+        return {'ok': False, 'error': 'Not admin'}
+    try:
+        r = sb.table('tutors').select('*').eq('is_verified', False).eq('is_active', True).execute()
+        return {'ok': True, 'tutors': r.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
