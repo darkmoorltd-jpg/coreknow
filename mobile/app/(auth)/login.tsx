@@ -61,6 +61,10 @@ export default function Login() {
               <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700", letterSpacing: 1 }}>SIGN IN</Text>}
           </Pressable>
 
+          <Pressable onPress={() => router.push("/(auth)/forgot")} style={{ marginTop: 14, alignItems: "center" }}>
+            <Text style={{ color: colors.accent, fontSize: 14, fontWeight: "600" }}>Forgot password?</Text>
+          </Pressable>
+
           <Pressable onPress={() => router.push("/(auth)/signup")} style={{ marginTop: 20, alignItems: "center" }}>
             <Text style={{ color: colors.textDim, fontSize: 14 }}>Don't have an account? <Text style={{ color: colors.accent, fontWeight: "700" }}>Sign up</Text></Text>
           </Pressable>
