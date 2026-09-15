@@ -348,6 +348,38 @@ def start_trial(req: InitSubRequest):
         }).execute()
     return {"ok": True, "trial_ends_at": trial_end.isoformat()}
 
+
+
+@app.get("/api/referrals/my-code/{user_id}")
+def my_referral_code(user_id: str):
+    import secrets
+    try:
+        r = sb.table("referral_codes").select("*").eq("user_id", user_id).execute()
+        if r.data:
+            return {"code": r.data[0]["code"], "uses": r.data[0]["uses"]}
+        code = "CKN" + secrets.token_hex(3).upper()
+        sb.table("referral_codes").insert({
+            "user_id": user_id,
+            "code": code,
+        }).execute()
+        return {"code": code, "uses": 0}
+    except Exception as e:
+        return {"code": "", "error": str(e)[:200]}
+
+
+@app.post("/api/referrals/validate")
+def validate_referral(req: InitSubRequest):
+    try:
+        r = sb.table("referral_codes").select("*").eq("code", req.referral_code.upper()).execute()
+        if not r.data:
+            return {"valid": False, "error": "Invalid code"}
+        row = r.data[0]
+        if row["uses"] >= row["max_uses"]:
+            return {"valid": False, "error": "Code expired"}
+        return {"valid": True, "discount": row["discount_amount"]}
+    except Exception as e:
+        return {"valid": False, "error": str(e)[:200]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
