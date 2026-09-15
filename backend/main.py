@@ -1044,6 +1044,182 @@ def set_language(req: ScanRequest):
     except Exception as e:
         return {"ok": False, "error": str(e)[:200]}
 
+
+
+# ============================================
+# PUSH TOKENS
+# ============================================
+class PushTokenRequest(BaseModel):
+    user_id: str
+    token: str
+    platform: str = "android"
+
+
+@app.post("/api/push/register")
+def register_push(req: PushTokenRequest):
+    try:
+        sb.table("push_tokens").upsert({
+            "user_id": req.user_id,
+            "token": req.token,
+            "platform": req.platform,
+        }, on_conflict="user_id,token").execute()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+class PushSendRequest(BaseModel):
+    title: str
+    body: str
+    user_ids: list = []
+
+
+@app.post("/api/push/send")
+async def send_push(req: PushSendRequest):
+    try:
+        if req.user_ids:
+            tokens_r = sb.table("push_tokens").select("token").in_("user_id", req.user_ids).execute()
+        else:
+            tokens_r = sb.table("push_tokens").select("token").execute()
+
+        tokens = [t["token"] for t in tokens_r.data if t.get("token", "").startswith("ExponentPushToken")]
+        if not tokens:
+            return {"ok": True, "sent": 0}
+
+        messages = [{"to": t, "title": req.title, "body": req.body, "sound": "default"} for t in tokens[:100]]
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                "https://exp.host/--/api/v2/push/send",
+                json=messages,
+                headers={"Content-Type": "application/json"},
+            )
+        return {"ok": True, "sent": len(messages)}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+# ============================================
+# LEADERBOARD
+# ============================================
+@app.get("/api/leaderboard")
+def leaderboard(limit: int = 50):
+    try:
+        from datetime import date
+        wk = date.today()
+        wk = wk.fromordinal(wk.toordinal() - wk.weekday())
+        r = sb.table("leaderboard_weekly").select("*") \
+            .eq("week_start", wk.isoformat()) \
+            .order("score", desc=True) \
+            .limit(limit).execute()
+        return {"week_start": wk.isoformat(), "leaderboard": r.data}
+    except Exception as e:
+        return {"leaderboard": [], "error": str(e)[:200]}
+
+
+class PointsRequest(BaseModel):
+    user_id: str
+    points: int
+
+
+@app.post("/api/leaderboard/add-points")
+def add_points(req: PointsRequest):
+    try:
+        sb.rpc("update_leaderboard", {"p_user_id": req.user_id, "p_points": req.points}).execute()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+# ============================================
+# THEME + BIOMETRIC
+# ============================================
+class PrefRequest(BaseModel):
+    user_id: str
+    theme: str = "dark"
+    biometric_enabled: bool = False
+
+
+@app.post("/api/prefs/save")
+def save_prefs(req: PrefRequest):
+    try:
+        sb.table("subscriptions").upsert({
+            "user_id": req.user_id,
+            "theme": req.theme,
+            "biometric_enabled": req.biometric_enabled,
+        }).execute()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+@app.get("/api/prefs/{user_id}")
+def get_prefs(user_id: str):
+    try:
+        r = sb.table("subscriptions").select("theme, biometric_enabled").eq("user_id", user_id).execute()
+        if r.data:
+            return {"theme": r.data[0].get("theme", "dark"), "biometric_enabled": r.data[0].get("biometric_enabled", False)}
+        return {"theme": "dark", "biometric_enabled": False}
+    except Exception as e:
+        return {"theme": "dark", "biometric_enabled": False}
+
+
+# ============================================
+# ERROR TRACKING
+# ============================================
+class ErrorRequest(BaseModel):
+    user_id: str = ""
+    message: str
+    stack: str = ""
+    platform: str = ""
+    app_version: str = ""
+
+
+@app.post("/api/errors/report")
+def report_error(req: ErrorRequest):
+    try:
+        sb.table("app_errors").insert({
+            "user_id": req.user_id,
+            "message": req.message[:1000],
+            "stack": req.stack[:2000],
+            "platform": req.platform,
+            "app_version": req.app_version,
+        }).execute()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False}
+
+
+@app.get("/api/errors/recent")
+def recent_errors(limit: int = 50):
+    try:
+        r = sb.table("app_errors").select("*").order("created_at", desc=True).limit(limit).execute()
+        return {"errors": r.data}
+    except Exception as e:
+        return {"errors": [], "error": str(e)[:200]}
+
+
+# ============================================
+# ANALYTICS SUMMARY
+# ============================================
+@app.get("/api/analytics/summary")
+def analytics_summary():
+    try:
+        users = sb.table("subscriptions").select("user_id", count="exact").execute()
+        paid = sb.table("payments").select("id", count="exact").eq("status", "paid").execute()
+        lessons = sb.table("education_lessons").select("id", count="exact").execute()
+        mcqs = sb.table("mcqs").select("id", count="exact").execute()
+        errors_24h = sb.table("app_errors").select("id", count="exact").execute()
+        return {
+            "users": users.count or 0,
+            "paid_transactions": paid.count or 0,
+            "total_lessons": lessons.count or 0,
+            "total_mcqs": mcqs.count or 0,
+            "errors_logged": errors_24h.count or 0,
+        }
+    except Exception as e:
+        return {"error": str(e)[:200]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
