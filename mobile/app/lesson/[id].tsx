@@ -1,31 +1,27 @@
-import { useState } from "react";
-import { View, Text, ScrollView, ActivityIndicator, Pressable } from "react-native";
-import { useLocalSearchParams, Stack } from "expo-router";
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { useLocalSearchParams, Stack, router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Video, ResizeMode } from "expo-av";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../lib/api";
-import { colors, spacing, radius } from "../../constants/theme";
+import { colors, spacing, radius, font } from "../../constants/theme";
+import { useState } from "react";
 
 export default function LessonScreen() {
   const params = useLocalSearchParams();
   const id = Number(params.id);
-  const [mode, setMode] = useState("read");
-  const query = useQuery({ queryKey: ["lesson", id], queryFn: () => api.getLesson(id) });
+  const [mode, setMode] = useState<"read" | "watch">("read");
+  const q = useQuery({ queryKey: ["lesson", id], queryFn: () => api.getLesson(id) });
 
-  if (query.isLoading || !query.data) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: "center" }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
+  if (q.isLoading || !q.data) {
+    return <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: "center" }}><ActivityIndicator size="large" color={colors.accent} /></View>;
   }
 
-  const d = query.data;
+  const d = q.data;
   const text = (d.lesson && d.lesson.lesson_text) || "";
-  const videoUrls = [];
-  const arr = text.split("\n");
-  for (let i = 0; i < arr.length; i++) {
-    const line = arr[i];
+  const videoUrls: string[] = [];
+  const lines = text.split('\n');
+  for (const line of lines) {
     if (line.indexOf("Watch Video") >= 0 && line.indexOf("http") >= 0) {
       const m = line.match(/\(([^)]+)\)/);
       if (m) videoUrls.push(m[1]);
@@ -34,29 +30,61 @@ export default function LessonScreen() {
   const bodyText = text.split("## VIDEO SIMULATIONS")[0].trim();
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <Stack.Screen options={{ title: d.syllabus.topic_title }} />
-      <ScrollView contentContainerStyle={{ padding: spacing.md }}>
-        <Text style={{ color: colors.textDim, fontSize: 12 }}>TOPIC {d.syllabus.topic_number}</Text>
-        <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800", marginTop: 6, marginBottom: 20 }}>{d.syllabus.topic_title}</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+      <Stack.Screen options={{ headerShown: false }} />
 
-        {videoUrls.length > 0 ? (
-          <View style={{ flexDirection: "row", gap: 8, marginBottom: spacing.md }}>
-            <Pressable onPress={() => setMode("read")} style={{ flex: 1, padding: 12, borderRadius: radius.md, backgroundColor: mode === "read" ? colors.accent : colors.card, alignItems: "center" }}>
-              <Text style={{ color: mode === "read" ? "#fff" : colors.text, fontWeight: "600" }}>Read</Text>
+      {/* Header */}
+      <View style={{ flexDirection: "row", alignItems: "center", padding: 20, paddingBottom: 12 }}>
+        <Pressable onPress={() => router.back()}>
+          <Text style={{ color: colors.text, fontSize: 32 }}>‹</Text>
+        </Pressable>
+        <Text style={[font.h3, { color: colors.text, marginLeft: 16, flex: 1 }]} numberOfLines={1}>{d.syllabus.topic_title}</Text>
+        <Text style={{ color: colors.yellow, fontSize: 24 }}>★</Text>
+      </View>
+
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
+        <View style={{ backgroundColor: colors.card, borderRadius: 999, borderWidth: 1, borderColor: colors.stroke, paddingHorizontal: 16, paddingVertical: 8, alignSelf: "flex-start", marginBottom: 20 }}>
+          <Text style={{ color: colors.textDim, fontSize: 12, fontWeight: "600" }}>TOPIC {d.syllabus.topic_number}</Text>
+        </View>
+
+        {/* Read / Watch toggle */}
+        {videoUrls.length > 0 && (
+          <View style={{ flexDirection: "row", backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 1, borderColor: colors.stroke, padding: 6, marginBottom: 24 }}>
+            <Pressable
+              onPress={() => setMode("read")}
+              style={{
+                flex: 1, paddingVertical: 14, borderRadius: radius.sm,
+                backgroundColor: mode === "read" ? colors.accent : "transparent",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: mode === "read" ? "#fff" : colors.textDim, fontWeight: "700" }}>Read</Text>
             </Pressable>
-            <Pressable onPress={() => setMode("watch")} style={{ flex: 1, padding: 12, borderRadius: radius.md, backgroundColor: mode === "watch" ? colors.accent : colors.card, alignItems: "center" }}>
-              <Text style={{ color: mode === "watch" ? "#fff" : colors.text, fontWeight: "600" }}>Watch</Text>
+            <Pressable
+              onPress={() => setMode("watch")}
+              style={{
+                flex: 1, paddingVertical: 14, borderRadius: radius.sm,
+                backgroundColor: mode === "watch" ? colors.accent : "transparent",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: mode === "watch" ? "#fff" : colors.textDim, fontWeight: "700" }}>Watch</Text>
             </Pressable>
           </View>
-        ) : null}
-
-        {mode === "watch" ? videoUrls.map((url, i) => (
-          <Video key={i} source={{ uri: url }} useNativeControls resizeMode={ResizeMode.CONTAIN} style={{ width: "100%", aspectRatio: 9 / 16, marginBottom: spacing.md }} />
-        )) : (
-          <Text style={{ color: colors.text, fontSize: 15, lineHeight: 24 }}>{bodyText}</Text>
         )}
+
+        {mode === "watch" ? (
+          videoUrls.map((url, i) => (
+            <Video key={i} source={{ uri: url }} useNativeControls resizeMode={ResizeMode.CONTAIN} style={{ width: "100%", aspectRatio: 9/16, borderRadius: radius.md, marginBottom: 20, backgroundColor: "#000" }} />
+          ))
+        ) : (
+          <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.stroke, padding: 24 }}>
+            <Text style={{ color: colors.text, fontSize: 15, lineHeight: 26 }}>{bodyText}</Text>
+          </View>
+        )}
+
+        <View style={{ height: 40 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
