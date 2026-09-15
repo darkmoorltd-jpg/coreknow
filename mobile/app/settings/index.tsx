@@ -6,6 +6,8 @@ import { useAuth } from "../../lib/store";
 import { colors, radius, font } from "../../constants/theme";
 
 const ROWS = [
+  { icon: "camera-outline", label: "Scan Homework", route: "/scan", color: colors.green },
+  { icon: "people-outline", label: "Parent Dashboard", route: "/parent", color: colors.pink },
   { icon: "sparkles-outline", label: "AI Practice", route: "/ai-practice", color: colors.violet },
   { icon: "document-text-outline", label: "Formula Sheets", route: "/formulas", color: colors.cyan },
   { icon: "bookmark-outline", label: "My Bookmarks", route: "/bookmarks", color: colors.yellow },
