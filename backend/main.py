@@ -2441,6 +2441,318 @@ def school_list_exams(class_id: int):
     except Exception as e:
         return {'ok': False, 'error': str(e)[:200]}
 
+
+
+# ============================================
+# STUDY GROUPS
+# ============================================
+class GroupCreateRequest(BaseModel):
+    user_id: str
+    full_name: str = ''
+    name: str
+    description: str = ''
+    subject: str = 'Chemistry'
+    is_public: bool = True
+
+
+@app.post('/api/groups/create')
+def group_create(req: GroupCreateRequest):
+    import secrets
+    try:
+        code = secrets.token_hex(3).upper()
+        r = sb.table('study_groups').insert({
+            'name': req.name,
+            'description': req.description,
+            'subject': req.subject,
+            'join_code': code,
+            'created_by': req.user_id,
+            'is_public': req.is_public,
+        }).execute()
+        gid = r.data[0]['id']
+        sb.table('study_group_members').insert({
+            'group_id': gid,
+            'user_id': req.user_id,
+            'full_name': req.full_name,
+            'role': 'admin',
+        }).execute()
+        return {'ok': True, 'group': r.data[0]}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/groups/list')
+def group_list(user_id: str = ''):
+    try:
+        mine = []
+        if user_id:
+            mem = sb.table('study_group_members').select('group_id').eq('user_id', user_id).execute()
+            ids = [m['group_id'] for m in mem.data]
+            if ids:
+                mine = sb.table('study_groups').select('*').in_('id', ids).execute().data
+        pub = sb.table('study_groups').select('*').eq('is_public', True).order('created_at', desc=True).limit(30).execute()
+        return {'ok': True, 'mine': mine, 'discover': pub.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class GroupJoinRequest(BaseModel):
+    group_id: int = 0
+    join_code: str = ''
+    user_id: str
+    full_name: str = ''
+
+
+@app.post('/api/groups/join')
+def group_join(req: GroupJoinRequest):
+    try:
+        gid = req.group_id
+        if not gid and req.join_code:
+            g = sb.table('study_groups').select('id').eq('join_code', req.join_code.upper()).execute()
+            if not g.data:
+                return {'ok': False, 'error': 'Invalid code'}
+            gid = g.data[0]['id']
+        if not gid:
+            return {'ok': False, 'error': 'No group'}
+        ex = sb.table('study_group_members').select('id').eq('group_id', gid).eq('user_id', req.user_id).execute()
+        if not ex.data:
+            sb.table('study_group_members').insert({
+                'group_id': gid,
+                'user_id': req.user_id,
+                'full_name': req.full_name,
+            }).execute()
+        return {'ok': True, 'group_id': gid}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/groups/{group_id}')
+def group_detail(group_id: int):
+    try:
+        g = sb.table('study_groups').select('*').eq('id', group_id).execute()
+        m = sb.table('study_group_members').select('*').eq('group_id', group_id).execute()
+        return {'ok': True, 'group': g.data[0] if g.data else None, 'members': m.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# FORUM
+# ============================================
+class ThreadCreateRequest(BaseModel):
+    user_id: str
+    author_name: str = ''
+    subject: str = 'Chemistry'
+    title: str
+    body: str
+
+
+@app.post('/api/forum/thread/create')
+def forum_thread_create(req: ThreadCreateRequest):
+    try:
+        r = sb.table('forum_threads').insert({
+            'user_id': req.user_id,
+            'author_name': req.author_name or req.user_id[:8],
+            'subject': req.subject,
+            'title': req.title,
+            'body': req.body,
+        }).execute()
+        return {'ok': True, 'thread': r.data[0] if r.data else None}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/forum/threads')
+def forum_threads(subject: str = '', limit: int = 30):
+    try:
+        q = sb.table('forum_threads').select('*')
+        if subject:
+            q = q.eq('subject', subject)
+        r = q.order('created_at', desc=True).limit(limit).execute()
+        return {'ok': True, 'threads': r.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/forum/thread/{thread_id}')
+def forum_thread_detail(thread_id: int):
+    try:
+        t = sb.table('forum_threads').select('*').eq('id', thread_id).execute()
+        reps = sb.table('forum_replies').select('*').eq('thread_id', thread_id).order('created_at').execute()
+        return {'ok': True, 'thread': t.data[0] if t.data else None, 'replies': reps.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class ReplyCreateRequest(BaseModel):
+    thread_id: int
+    user_id: str
+    author_name: str = ''
+    body: str
+
+
+@app.post('/api/forum/reply/create')
+def forum_reply_create(req: ReplyCreateRequest):
+    try:
+        r = sb.table('forum_replies').insert({
+            'thread_id': req.thread_id,
+            'user_id': req.user_id,
+            'author_name': req.author_name or req.user_id[:8],
+            'body': req.body,
+        }).execute()
+        t = sb.table('forum_threads').select('reply_count').eq('id', req.thread_id).execute()
+        if t.data:
+            new_count = (t.data[0].get('reply_count') or 0) + 1
+            sb.table('forum_threads').update({'reply_count': new_count}).eq('id', req.thread_id).execute()
+        return {'ok': True, 'reply': r.data[0] if r.data else None}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class VoteRequest(BaseModel):
+    target_type: str
+    target_id: int
+    user_id: str
+
+
+@app.post('/api/forum/vote')
+def forum_vote(req: VoteRequest):
+    try:
+        ex = sb.table('forum_votes').select('id').eq('target_type', req.target_type).eq('target_id', req.target_id).eq('user_id', req.user_id).execute()
+        if ex.data:
+            return {'ok': True, 'voted': False, 'message': 'Already voted'}
+        sb.table('forum_votes').insert({
+            'target_type': req.target_type,
+            'target_id': req.target_id,
+            'user_id': req.user_id,
+        }).execute()
+        table = 'forum_threads' if req.target_type == 'thread' else 'forum_replies'
+        cur = sb.table(table).select('upvotes').eq('id', req.target_id).execute()
+        if cur.data:
+            sb.table(table).update({'upvotes': (cur.data[0].get('upvotes') or 0) + 1}).eq('id', req.target_id).execute()
+        return {'ok': True, 'voted': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# FRIENDS
+# ============================================
+class FriendRequest(BaseModel):
+    user_id: str
+    friend_email: str
+
+
+@app.post('/api/friends/request')
+def friend_request(req: FriendRequest):
+    try:
+        users = sb.auth.admin.list_users()
+        friend = None
+        for u in users:
+            if u.email and u.email.lower() == req.friend_email.lower():
+                friend = u
+                break
+        if not friend:
+            return {'ok': False, 'error': 'User not found'}
+        if friend.id == req.user_id:
+            return {'ok': False, 'error': 'Cannot add yourself'}
+        sb.table('friendships').upsert({
+            'user_id': req.user_id,
+            'friend_id': friend.id,
+            'status': 'pending',
+        }, on_conflict='user_id,friend_id').execute()
+        return {'ok': True, 'friend_id': friend.id}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/friends/{user_id}')
+def friend_list(user_id: str):
+    try:
+        sent = sb.table('friendships').select('*').eq('user_id', user_id).execute()
+        received = sb.table('friendships').select('*').eq('friend_id', user_id).execute()
+        accepted = [f for f in sent.data if f['status'] == 'accepted'] + [f for f in received.data if f['status'] == 'accepted']
+        pending = [f for f in received.data if f['status'] == 'pending']
+        return {'ok': True, 'friends': accepted, 'pending': pending, 'sent': [f for f in sent.data if f['status'] == 'pending']}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class FriendRespond(BaseModel):
+    user_id: str
+    friend_id: str
+    accept: bool
+
+
+@app.post('/api/friends/respond')
+def friend_respond(req: FriendRespond):
+    try:
+        if req.accept:
+            sb.table('friendships').update({'status': 'accepted'}).eq('user_id', req.friend_id).eq('friend_id', req.user_id).execute()
+            sb.table('friendships').upsert({'user_id': req.user_id, 'friend_id': req.friend_id, 'status': 'accepted'}, on_conflict='user_id,friend_id').execute()
+        else:
+            sb.table('friendships').delete().eq('user_id', req.friend_id).eq('friend_id', req.user_id).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# CHALLENGES
+# ============================================
+@app.get('/api/challenges')
+def challenge_list(user_id: str = ''):
+    try:
+        r = sb.table('challenges').select('*').eq('is_public', True).order('created_at', desc=True).limit(20).execute()
+        joined_ids = []
+        if user_id:
+            p = sb.table('challenge_participants').select('challenge_id').eq('user_id', user_id).execute()
+            joined_ids = [x['challenge_id'] for x in p.data]
+        return {'ok': True, 'challenges': r.data, 'joined': joined_ids}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class ChallengeJoinRequest(BaseModel):
+    challenge_id: int
+    user_id: str
+
+
+@app.post('/api/challenges/join')
+def challenge_join(req: ChallengeJoinRequest):
+    try:
+        sb.table('challenge_participants').upsert({
+            'challenge_id': req.challenge_id,
+            'user_id': req.user_id,
+            'progress': 0,
+        }, on_conflict='challenge_id,user_id').execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class ChallengeProgressRequest(BaseModel):
+    challenge_id: int
+    user_id: str
+    progress: int
+
+
+@app.post('/api/challenges/progress')
+def challenge_progress(req: ChallengeProgressRequest):
+    try:
+        sb.table('challenge_participants').update({'progress': req.progress}).eq('challenge_id', req.challenge_id).eq('user_id', req.user_id).execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/challenges/{challenge_id}/leaderboard')
+def challenge_leaderboard(challenge_id: int):
+    try:
+        r = sb.table('challenge_participants').select('*').eq('challenge_id', challenge_id).order('progress', desc=True).limit(50).execute()
+        return {'ok': True, 'participants': r.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
