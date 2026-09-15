@@ -656,6 +656,197 @@ def parent_dashboard(parent_id: str):
     except Exception as e:
         return {"children": [], "error": str(e)[:200]}
 
+
+
+# ============================================
+# FORMULA SHEETS
+# ============================================
+@app.get("/api/formulas")
+def list_formulas(subject: str = ""):
+    try:
+        q = sb.table("formula_sheets").select("*")
+        if subject:
+            q = q.eq("subject", subject)
+        r = q.order("subject").execute()
+        return {"sheets": r.data}
+    except Exception as e:
+        return {"sheets": [], "error": str(e)[:200]}
+
+
+# ============================================
+# PAST QUESTIONS
+# ============================================
+@app.get("/api/past-questions")
+def list_past(exam: str = "JAMB", subject: str = "", year: int = 0, limit: int = 20):
+    try:
+        q = sb.table("past_questions").select("*").eq("exam", exam)
+        if subject:
+            q = q.eq("subject", subject)
+        if year > 0:
+            q = q.eq("year", year)
+        r = q.order("year", desc=True).limit(limit).execute()
+        return {"questions": r.data}
+    except Exception as e:
+        return {"questions": [], "error": str(e)[:200]}
+
+
+@app.get("/api/past-questions/years")
+def past_years(exam: str = "JAMB", subject: str = ""):
+    try:
+        q = sb.table("past_questions").select("year").eq("exam", exam)
+        if subject:
+            q = q.eq("subject", subject)
+        r = q.execute()
+        years = sorted(set(row["year"] for row in r.data), reverse=True)
+        return {"years": years}
+    except Exception as e:
+        return {"years": [], "error": str(e)[:200]}
+
+
+# ============================================
+# AI QUESTION GENERATION
+# ============================================
+class GenRequest(BaseModel):
+    subject: str
+    topic_number: int
+    topic_title: str
+    count: int = 10
+    user_id: str = ""
+
+
+@app.post("/api/ai/questions/generate")
+async def generate_questions(req: GenRequest):
+    if not DEEPSEEK_KEY:
+        return {"ok": False, "error": "DEEPSEEK_API_KEY not set"}
+
+    prompt = (
+        "Generate " + str(req.count) + " JAMB-style multiple choice questions on '" + req.topic_title +
+        "' for Nigerian students. Return ONLY a JSON array. Each object: "
+        '{"question":"...","options":["A","B","C","D"],"correct_index":0-3,"explanation":"why"}.'
+        " Make them exam-quality, no repeats, mix difficulties."
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=90) as client:
+            r = await client.post(
+                "https://api.deepseek.com/v1/chat/completions",
+                headers={"Authorization": "Bearer " + DEEPSEEK_KEY},
+                json={
+                    "model": "deepseek-chat",
+                    "messages": [
+                        {"role": "system", "content": "You are a JAMB exam question writer. Return valid JSON only, no markdown."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.8,
+                },
+            )
+            data = r.json()
+
+        raw = data["choices"][0]["message"]["content"].strip()
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        import json as _j
+        questions = _j.loads(raw)
+
+        inserted = []
+        for q in questions[:req.count]:
+            try:
+                row = sb.table("mcqs").insert({
+                    "subject": req.subject,
+                    "topic_number": req.topic_number,
+                    "question": q["question"],
+                    "options": q["options"],
+                    "correct_index": q["correct_index"],
+                    "explanation": q.get("explanation", ""),
+                    "source": "ai",
+                }).execute()
+                if row.data:
+                    inserted.append(row.data[0])
+            except Exception:
+                pass
+
+        sb.table("ai_generation_log").insert({
+            "user_id": req.user_id,
+            "questions_generated": len(inserted),
+        }).execute()
+
+        return {"ok": True, "questions": inserted}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:300]}
+
+
+# ============================================
+# BULK LESSON IMPORT
+# ============================================
+class ImportRequest(BaseModel):
+    exam: str
+    subject: str
+    topic_number: int
+    topic_title: str
+    lesson_text: str
+    subtopics: list = []
+
+
+@app.post("/api/import/lesson")
+def import_lesson(req: ImportRequest):
+    try:
+        existing = sb.table("education_syllabi").select("id") \
+            .eq("exam", req.exam).eq("subject", req.subject) \
+            .eq("topic_number", req.topic_number).execute()
+
+        if existing.data:
+            syl_id = existing.data[0]["id"]
+            sb.table("education_syllabi").update({
+                "topic_title": req.topic_title,
+                "subtopics": req.subtopics,
+            }).eq("id", syl_id).execute()
+        else:
+            ins = sb.table("education_syllabi").insert({
+                "exam": req.exam,
+                "subject": req.subject,
+                "topic_number": req.topic_number,
+                "topic_title": req.topic_title,
+                "subtopics": req.subtopics,
+            }).execute()
+            syl_id = ins.data[0]["id"]
+
+        les = sb.table("education_lessons").select("id") \
+            .eq("syllabus_id", syl_id).execute()
+        if les.data:
+            sb.table("education_lessons").update({
+                "lesson_text": req.lesson_text,
+                "topic_title": req.topic_title,
+            }).eq("id", les.data[0]["id"]).execute()
+            lesson_id = les.data[0]["id"]
+        else:
+            ins2 = sb.table("education_lessons").insert({
+                "syllabus_id": syl_id,
+                "topic_title": req.topic_title,
+                "lesson_text": req.lesson_text,
+            }).execute()
+            lesson_id = ins2.data[0]["id"]
+
+        return {"ok": True, "syllabus_id": syl_id, "lesson_id": lesson_id}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:300]}
+
+
+@app.get("/api/import/stats")
+def import_stats():
+    try:
+        syl = sb.table("education_syllabi").select("id", count="exact").execute()
+        les = sb.table("education_lessons").select("id", count="exact").execute()
+        mcq = sb.table("mcqs").select("id", count="exact").execute()
+        return {
+            "syllabi": syl.count or 0,
+            "lessons": les.count or 0,
+            "mcqs": mcq.count or 0,
+        }
+    except Exception as e:
+        return {"error": str(e)[:200]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
