@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client
@@ -135,6 +135,192 @@ def payment_status(user_id: str):
     except Exception as e:
         return {"active": False, "error": str(e)[:200]}
 
+
+
+
+PAYSTACK_KEY = os.environ.get("PAYSTACK_SECRET_KEY") or ""
+
+
+class InitSubRequest(BaseModel):
+    user_id: str
+    email: str
+    tier: str = "pro"
+    referral_code: str = ""
+    discount_code: str = ""
+
+
+@app.get("/api/access/{user_id}")
+def get_access(user_id: str):
+    try:
+        r = sb.rpc("has_premium_access", {"p_user_id": user_id}).execute()
+        has = bool(r.data) if r.data is not None else False
+        sub = sb.table("subscriptions").select("*").eq("user_id", user_id).execute()
+        return {
+            "hasAccess": has,
+            "subscription": sub.data[0] if sub.data else None,
+        }
+    except Exception as e:
+        return {"hasAccess": False, "error": str(e)[:200]}
+
+
+@app.post("/api/subscribe/init")
+def init_subscription(req: InitSubRequest):
+    if not PAYSTACK_KEY:
+        return {"ok": False, "error": "PAYSTACK_SECRET_KEY not set"}
+
+    amount = 500000  # N5000 in kobo
+    if req.tier == "school":
+        amount = 50000000  # N500,000 in kobo
+
+    if req.discount_code:
+        try:
+            d = sb.table("discount_codes").select("*").eq("code", req.discount_code).eq("active", True).execute()
+            if d.data:
+                code = d.data[0]
+                if code["discount_type"] == "percent":
+                    amount = int(amount * (100 - code["discount_value"]) / 100)
+                else:
+                    amount = max(0, amount - code["discount_value"] * 100)
+        except Exception:
+            pass
+
+    if req.referral_code:
+        try:
+            rc = sb.table("referral_codes").select("*").eq("code", req.referral_code).execute()
+            if rc.data:
+                amount = max(0, amount - rc.data[0]["discount_amount"] * 100)
+        except Exception:
+            pass
+
+    import time as _t
+    ref = "CKN-" + req.user_id[:8] + "-" + str(int(_t.time()))
+
+    try:
+        resp = httpx.post(
+            "https://api.paystack.co/transaction/initialize",
+            headers={"Authorization": "Bearer " + PAYSTACK_KEY},
+            json={
+                "email": req.email,
+                "amount": amount,
+                "reference": ref,
+                "metadata": {
+                    "user_id": req.user_id,
+                    "tier": req.tier,
+                    "referral_code": req.referral_code,
+                },
+            },
+            timeout=30,
+        )
+        data = resp.json()
+        if not data.get("status"):
+            return {"ok": False, "error": data.get("message", "Paystack error")}
+
+        sb.table("payments").insert({
+            "user_id": req.user_id,
+            "amount": amount // 100,
+            "currency": "NGN",
+            "plan": req.tier,
+            "reference": ref,
+            "status": "pending",
+            "paystack_ref": ref,
+        }).execute()
+
+        return {
+            "ok": True,
+            "authorization_url": data["data"]["authorization_url"],
+            "reference": ref,
+        }
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+class VerifyRequest(BaseModel):
+    reference: str
+
+
+@app.post("/api/subscribe/verify")
+def verify_subscription(req: VerifyRequest):
+    if not PAYSTACK_KEY:
+        return {"ok": False, "error": "PAYSTACK_SECRET_KEY not set"}
+
+    try:
+        resp = httpx.get(
+            "https://api.paystack.co/transaction/verify/" + req.reference,
+            headers={"Authorization": "Bearer " + PAYSTACK_KEY},
+            timeout=30,
+        )
+        data = resp.json()
+        if not data.get("status") or data["data"]["status"] != "success":
+            return {"ok": False, "error": "Payment not successful"}
+
+        meta = data["data"].get("metadata", {})
+        user_id = meta.get("user_id", "")
+        tier = meta.get("tier", "pro")
+        ref_code = meta.get("referral_code", "")
+
+        from datetime import datetime, timedelta, timezone
+        now = datetime.now(timezone.utc)
+        period_end = now + timedelta(days=30)
+
+        sb.table("payments").update({
+            "status": "paid",
+            "verified_at": now.isoformat(),
+        }).eq("reference", req.reference).execute()
+
+        existing = sb.table("subscriptions").select("*").eq("user_id", user_id).execute()
+        if existing.data:
+            sb.table("subscriptions").update({
+                "tier": tier,
+                "status": "active",
+                "current_period_ends_at": period_end.isoformat(),
+                "updated_at": now.isoformat(),
+            }).eq("user_id", user_id).execute()
+        else:
+            sb.table("subscriptions").insert({
+                "user_id": user_id,
+                "tier": tier,
+                "status": "active",
+                "current_period_ends_at": period_end.isoformat(),
+            }).execute()
+
+        if ref_code:
+            try:
+                rc = sb.table("referral_codes").select("*").eq("code", ref_code).execute()
+                if rc.data:
+                    referrer = rc.data[0]["user_id"]
+                    sb.table("referral_uses").insert({
+                        "code": ref_code,
+                        "referrer_id": referrer,
+                        "referee_id": user_id,
+                    }).execute()
+                    sb.table("referral_codes").update({
+                        "uses": rc.data[0]["uses"] + 1,
+                    }).eq("code", ref_code).execute()
+            except Exception:
+                pass
+
+        return {"ok": True, "tier": tier, "period_end": period_end.isoformat()}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+@app.post("/api/paystack/webhook")
+async def paystack_webhook(request: Request):
+    import hmac, hashlib, json as _json
+    body = await request.body()
+    sig = request.headers.get("x-paystack-signature", "")
+    if not PAYSTACK_KEY:
+        return {"ok": False}
+    expected = hmac.new(PAYSTACK_KEY.encode(), body, hashlib.sha512).hexdigest()
+    if sig != expected:
+        raise HTTPException(400, "Invalid signature")
+
+    data = _json.loads(body)
+    if data.get("event") == "charge.success":
+        ref = data["data"]["reference"]
+        sb.table("payments").update({"status": "paid"}).eq("reference", ref).execute()
+
+    return {"ok": True}
 
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
