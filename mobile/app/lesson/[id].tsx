@@ -7,6 +7,7 @@ import { api } from "../../lib/api";
 import { colors, spacing, radius, font } from "../../constants/theme";
 import { day6 } from "../../lib/day6";
 import { isDownloaded, download, remove, getOffline } from "../../lib/offline";
+import { admin } from "../../lib/admin";
 import { useAuth } from "../../lib/store";
 import { api } from "../../lib/day1";
 import { speak, stopSpeaking } from "../../lib/audio";
