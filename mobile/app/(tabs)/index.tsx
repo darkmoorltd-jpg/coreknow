@@ -2,6 +2,9 @@ import { ScrollView, View, Text, Pressable, StatusBar } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../lib/store";
+import { api } from "../../lib/day1";
 import { colors, spacing, radius, font } from "../../constants/theme";
 
 const EXAMS = [
@@ -11,7 +14,29 @@ const EXAMS = [
   { id: "GCE",  letter: "G", color: colors.violet, topics: 18 },
 ];
 
+function StreakCard({ userId }: { userId: string }) {
+  const [streak, setStreak] = useState(0);
+  useEffect(() => {
+    if (!userId) return;
+    api.touchStreak(userId).then((d) => {
+      if (d.streak) setStreak(d.streak[0] || 0);
+    }).catch(() => {});
+  }, [userId]);
+  return (
+    <View style={{ backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 2, borderColor: colors.yellow, padding: 20, marginBottom: 24, flexDirection: 'row', alignItems: 'center' }}>
+      <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: colors.yellow, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: 28 }}>🔥</Text>
+      </View>
+      <View style={{ flex: 1, marginLeft: 16 }}>
+        <Text style={{ color: colors.text, fontSize: 28, fontWeight: '800' }}>{streak} day{streak === 1 ? '' : 's'}</Text>
+        <Text style={{ color: colors.textDim, fontSize: 13, marginTop: 2 }}>Keep the streak going!</Text>
+      </View>
+    </View>
+  );
+}
+
 export default function HomeScreen() {
+  const user = useAuth((s) => s.user);
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       <StatusBar barStyle="light-content" />
@@ -60,6 +85,9 @@ export default function HomeScreen() {
             <Text style={{ color: colors.textFaint, fontSize: 12, marginTop: 2 }}>Timed mode</Text>
           </Pressable>
         </View>
+
+        {/* Streak card */}
+        <StreakCard userId={user?.id || ''} />
 
         {/* Stats */}
         <View style={{ flexDirection: "row", gap: 12, marginBottom: 28 }}>
