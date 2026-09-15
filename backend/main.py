@@ -380,6 +380,65 @@ def validate_referral(req: InitSubRequest):
     except Exception as e:
         return {"valid": False, "error": str(e)[:200]}
 
+
+
+class SchoolRequest(BaseModel):
+    school_name: str
+    contact_email: str
+    contact_phone: str = ""
+    max_students: int = 100
+    user_id: str
+
+
+@app.post("/api/school/create")
+def create_school(req: SchoolRequest):
+    import secrets, time as _t
+    try:
+        code = "SCH" + secrets.token_hex(4).upper()
+        ref = "SCH-" + str(int(_t.time()))
+        sb.table("school_licenses").insert({
+            "school_name": req.school_name,
+            "contact_email": req.contact_email,
+            "contact_phone": req.contact_phone,
+            "max_students": req.max_students,
+            "price": 500000,
+            "active": False,
+        }).execute()
+        return {"ok": True, "reference": ref, "code": code}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
+@app.post("/api/school/join")
+def join_school(req: InitSubRequest):
+    try:
+        code = req.referral_code  # reuse field for school code
+        r = sb.table("school_licenses").select("*").eq("active", True).execute()
+        match = None
+        for lic in r.data:
+            if lic["contact_email"].endswith("@" + code) or code in lic["school_name"].upper().replace(" ", ""):
+                match = lic
+                break
+        if not match:
+            return {"ok": False, "error": "Invalid school code"}
+        if match["students_used"] >= match["max_students"]:
+            return {"ok": False, "error": "License full"}
+        sb.table("school_members").insert({
+            "license_id": match["id"],
+            "user_id": req.user_id,
+        }).execute()
+        sb.table("school_licenses").update({
+            "students_used": match["students_used"] + 1,
+        }).eq("id", match["id"]).execute()
+        sb.table("subscriptions").upsert({
+            "user_id": req.user_id,
+            "tier": "school",
+            "status": "active",
+        }).execute()
+        return {"ok": True, "school": match["school_name"]}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
