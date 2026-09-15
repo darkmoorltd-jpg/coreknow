@@ -23,6 +23,7 @@ const ROWS = [
   { icon: "language-outline", label: "Language", route: "/language", color: colors.accent },
   { icon: "flame-outline", label: "Streak Card", route: "/streak-card", color: colors.yellow },
   { icon: "flask-outline", label: "A/B Tests (admin)", route: "/ab-results", color: colors.violet },
+  { icon: "school-outline", label: "School Hub", route: "/school/hub", color: colors.accent },
   { icon: "shield-checkmark-outline", label: "Admin Panel", route: "/admin", color: colors.red },
   { icon: "trophy-outline", label: "Leaderboard", route: "/leaderboard", color: colors.yellow },
   { icon: "options-outline", label: "Preferences", route: "/preferences", color: colors.accent },
