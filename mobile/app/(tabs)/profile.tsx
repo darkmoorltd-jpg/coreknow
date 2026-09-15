@@ -1,4 +1,5 @@
 import { View, Text, ScrollView, Pressable, StatusBar } from "react-native";
+import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, spacing, radius, font } from "../../constants/theme";
@@ -14,6 +15,7 @@ const SETTINGS = [
   { icon: "school-outline", label: "Exam", value: "JAMB", color: colors.accent },
   { icon: "book-outline", label: "Grade level", value: "SS3", color: colors.green },
   { icon: "flame-outline", label: "Notifications", value: "Off", color: colors.yellow },
+  { icon: "card-outline", label: "Payment history", value: "", color: colors.yellow },
   { icon: "help-circle-outline", label: "Help & support", value: "", color: colors.cyan },
   { icon: "information-circle-outline", label: "About", value: "v1.0.0", color: colors.violet },
 ];
@@ -50,7 +52,7 @@ export default function ProfileScreen() {
         <Text style={[font.tiny, { color: colors.textFaint, marginBottom: 12 }]}>SETTINGS</Text>
 
         {SETTINGS.map((row, i) => (
-          <Pressable key={i} style={{ backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 1, borderColor: colors.stroke, padding: 16, marginBottom: 10, flexDirection: "row", alignItems: "center" }}>
+          <Pressable key={i} onPress={() => { if (row.label === "Payment history") router.push("/payments"); }} style={{ backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 1, borderColor: colors.stroke, padding: 16, marginBottom: 10, flexDirection: "row", alignItems: "center" }}>
             <View style={{ position: "absolute", left: 0, top: 16, bottom: 16, width: 3, backgroundColor: row.color, borderTopRightRadius: 3, borderBottomRightRadius: 3 }} />
             <Ionicons name={row.icon as any} size={22} color={row.color} />
             <Text style={{ flex: 1, marginLeft: 14, color: colors.text, fontSize: 16, fontWeight: "500" }}>{row.label}</Text>
