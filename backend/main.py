@@ -2096,6 +2096,351 @@ def track_read(req: ReadTrackRequest):
     except Exception as e:
         return {'ok': False, 'error': str(e)[:200]}
 
+
+
+# ============================================
+# SCHOOL: CLASSES
+# ============================================
+class ClassCreateRequest(BaseModel):
+    school_license_id: int
+    admin_id: str
+    name: str
+    level: str = ''
+    teacher_id: str = ''
+
+
+@app.post('/api/school/class/create')
+def school_class_create(req: ClassCreateRequest):
+    import secrets
+    try:
+        code = secrets.token_hex(3).upper()
+        r = sb.table('classes').insert({
+            'school_license_id': req.school_license_id,
+            'name': req.name,
+            'level': req.level,
+            'teacher_id': req.teacher_id or req.admin_id,
+            'join_code': code,
+        }).execute()
+        return {'ok': True, 'class': r.data[0] if r.data else None}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/school/classes')
+def school_list_classes(school_license_id: int = 0, teacher_id: str = ''):
+    try:
+        q = sb.table('classes').select('*').eq('active', True)
+        if school_license_id > 0:
+            q = q.eq('school_license_id', school_license_id)
+        if teacher_id:
+            q = q.eq('teacher_id', teacher_id)
+        r = q.order('created_at', desc=True).execute()
+        return {'ok': True, 'classes': r.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class ClassJoinRequest(BaseModel):
+    join_code: str
+    user_id: str
+    full_name: str = ''
+
+
+@app.post('/api/school/class/join')
+def school_class_join(req: ClassJoinRequest):
+    try:
+        cls = sb.table('classes').select('*').eq('join_code', req.join_code.upper()).eq('active', True).execute()
+        if not cls.data:
+            return {'ok': False, 'error': 'Invalid code'}
+        class_row = cls.data[0]
+        existing = sb.table('class_members').select('id').eq('class_id', class_row['id']).eq('user_id', req.user_id).execute()
+        if not existing.data:
+            sb.table('class_members').insert({
+                'class_id': class_row['id'],
+                'user_id': req.user_id,
+                'full_name': req.full_name,
+                'role': 'student',
+            }).execute()
+        return {'ok': True, 'class': {'id': class_row['id'], 'name': class_row['name'], 'level': class_row['level']}}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/school/class/{class_id}/members')
+def school_class_members(class_id: int):
+    try:
+        r = sb.table('class_members').select('*').eq('class_id', class_id).order('joined_at').execute()
+        return {'ok': True, 'members': r.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# SCHOOL: ASSIGNMENTS
+# ============================================
+class AssignmentCreateRequest(BaseModel):
+    class_id: int
+    teacher_id: str
+    title: str
+    description: str = ''
+    subject: str = 'Chemistry'
+    topic_number: int = 0
+    due_at: str = ''
+    max_score: int = 100
+
+
+@app.post('/api/school/assignment/create')
+def school_assignment_create(req: AssignmentCreateRequest):
+    try:
+        payload = {
+            'class_id': req.class_id,
+            'teacher_id': req.teacher_id,
+            'title': req.title,
+            'description': req.description,
+            'subject': req.subject,
+            'topic_number': req.topic_number,
+            'max_score': req.max_score,
+        }
+        if req.due_at:
+            payload['due_at'] = req.due_at
+        r = sb.table('assignments').insert(payload).execute()
+        return {'ok': True, 'assignment': r.data[0] if r.data else None}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/school/assignments/{class_id}')
+def school_assignment_list(class_id: int):
+    try:
+        r = sb.table('assignments').select('*').eq('class_id', class_id).order('created_at', desc=True).execute()
+        return {'ok': True, 'assignments': r.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/school/assignment/{assignment_id}')
+def school_assignment_detail(assignment_id: int):
+    try:
+        a = sb.table('assignments').select('*').eq('id', assignment_id).execute()
+        subs = sb.table('assignment_submissions').select('*').eq('assignment_id', assignment_id).execute()
+        return {'ok': True, 'assignment': a.data[0] if a.data else None, 'submissions': subs.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+class SubmitRequest(BaseModel):
+    assignment_id: int
+    student_id: str
+    text: str
+
+
+@app.post('/api/school/assignment/submit')
+async def school_assignment_submit(req: SubmitRequest):
+    if not DEEPSEEK_KEY:
+        return {'ok': False, 'error': 'AI not configured'}
+    try:
+        a = sb.table('assignments').select('*').eq('id', req.assignment_id).execute()
+        if not a.data:
+            return {'ok': False, 'error': 'Assignment not found'}
+        subject = a.data[0].get('subject', 'Chemistry')
+        max_score = a.data[0].get('max_score', 100)
+
+        prompt = ('Grade this ' + subject + ' student answer out of ' + str(max_score) + '. ' +
+            'Return ONLY JSON: {"score": number, "feedback": "2 sentences"}. ' +
+            'Be fair and encouraging.\n\nANSWER:\n' + req.text)
+
+        async with httpx.AsyncClient(timeout=60) as client:
+            r = await client.post(
+                'https://api.deepseek.com/v1/chat/completions',
+                headers={'Authorization': 'Bearer ' + DEEPSEEK_KEY},
+                json={
+                    'model': 'deepseek-chat',
+                    'messages': [
+                        {'role': 'system', 'content': 'You are a Nigerian teacher grading homework. Return JSON only.'},
+                        {'role': 'user', 'content': prompt},
+                    ],
+                    'temperature': 0.3,
+                },
+            )
+            data = r.json()
+        raw = data['choices'][0]['message']['content'].strip()
+        if raw.startswith('```'):
+            raw = raw.split('```')[1]
+            if raw.startswith('json'):
+                raw = raw[4:]
+        import json as _j
+        g = _j.loads(raw)
+
+        sb.table('assignment_submissions').upsert({
+            'assignment_id': req.assignment_id,
+            'student_id': req.student_id,
+            'text': req.text,
+            'score': int(g.get('score', 0)),
+            'feedback': g.get('feedback', ''),
+            'status': 'graded',
+        }, on_conflict='assignment_id,student_id').execute()
+
+        return {'ok': True, 'score': int(g.get('score', 0)), 'feedback': g.get('feedback', '')}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:300]}
+
+
+class ManualGradeRequest(BaseModel):
+    assignment_id: int
+    student_id: str
+    score: int
+    feedback: str = ''
+
+
+@app.post('/api/school/assignment/manual-grade')
+def school_manual_grade(req: ManualGradeRequest):
+    try:
+        sb.table('assignment_submissions').upsert({
+            'assignment_id': req.assignment_id,
+            'student_id': req.student_id,
+            'score': req.score,
+            'feedback': req.feedback,
+            'status': 'graded',
+        }, on_conflict='assignment_id,student_id').execute()
+        return {'ok': True}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# SCHOOL: CLASS ANALYTICS
+# ============================================
+@app.get('/api/school/analytics/{class_id}')
+def school_class_analytics(class_id: int):
+    try:
+        members = sb.table('class_members').select('*').eq('class_id', class_id).execute()
+        asgs = sb.table('assignments').select('id').eq('class_id', class_id).execute()
+        asg_ids = [a['id'] for a in asgs.data]
+        subs = []
+        if asg_ids:
+            subs = sb.table('assignment_submissions').select('*').in_('assignment_id', asg_ids).execute().data
+
+        student_stats = {}
+        for m in members.data:
+            student_stats[m['user_id']] = {
+                'user_id': m['user_id'],
+                'name': m.get('full_name') or m['user_id'][:8],
+                'submitted': 0,
+                'total_score': 0,
+                'graded': 0,
+            }
+
+        for s in subs:
+            sid = s['student_id']
+            if sid in student_stats:
+                student_stats[sid]['submitted'] += 1
+                if s.get('score') is not None:
+                    student_stats[sid]['total_score'] += s['score']
+                    student_stats[sid]['graded'] += 1
+
+        rows = []
+        for k, v in student_stats.items():
+            avg = round(v['total_score'] / v['graded'], 1) if v['graded'] > 0 else 0
+            rows.append({
+                'user_id': v['user_id'],
+                'name': v['name'],
+                'submitted': v['submitted'],
+                'graded': v['graded'],
+                'avg_score': avg,
+            })
+        rows.sort(key=lambda x: -x['avg_score'])
+
+        class_avg = round(sum(r['avg_score'] for r in rows) / len(rows), 1) if rows else 0
+        return {
+            'ok': True,
+            'total_students': len(members.data),
+            'total_assignments': len(asg_ids),
+            'class_average': class_avg,
+            'students': rows,
+        }
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# SCHOOL: REPORT CARD
+# ============================================
+@app.get('/api/school/report/{class_id}/{student_id}')
+def school_report_card(class_id: int, student_id: str):
+    try:
+        m = sb.table('class_members').select('*').eq('class_id', class_id).eq('user_id', student_id).execute()
+        if not m.data:
+            return {'ok': False, 'error': 'Student not in class'}
+        name = m.data[0].get('full_name') or student_id[:8]
+
+        asgs = sb.table('assignments').select('*').eq('class_id', class_id).execute()
+        results = []
+        for a in asgs.data:
+            sub = sb.table('assignment_submissions').select('*').eq('assignment_id', a['id']).eq('student_id', student_id).execute()
+            results.append({
+                'assignment': a['title'],
+                'subject': a.get('subject', ''),
+                'max_score': a.get('max_score', 100),
+                'score': sub.data[0].get('score') if sub.data else None,
+                'feedback': sub.data[0].get('feedback') if sub.data else '',
+            })
+
+        grades = [r['score'] for r in results if r['score'] is not None]
+        avg = round(sum(grades) / len(grades), 1) if grades else 0
+        grade = 'A' if avg >= 75 else 'B' if avg >= 65 else 'C' if avg >= 55 else 'D' if avg >= 45 else 'F'
+
+        return {
+            'ok': True,
+            'student': name,
+            'class_id': class_id,
+            'average': avg,
+            'grade': grade,
+            'assignments': results,
+        }
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+# ============================================
+# SCHOOL: EXAM SCHEDULE
+# ============================================
+class ExamScheduleRequest(BaseModel):
+    school_license_id: int
+    class_id: int
+    created_by: str
+    title: str
+    subject: str = 'Chemistry'
+    exam_date: str
+    duration_minutes: int = 60
+    total_questions: int = 40
+
+
+@app.post('/api/school/exam/schedule')
+def school_exam_schedule(req: ExamScheduleRequest):
+    try:
+        r = sb.table('school_exams').insert({
+            'school_license_id': req.school_license_id,
+            'class_id': req.class_id,
+            'title': req.title,
+            'subject': req.subject,
+            'exam_date': req.exam_date,
+            'duration_minutes': req.duration_minutes,
+            'total_questions': req.total_questions,
+            'created_by': req.created_by,
+        }).execute()
+        return {'ok': True, 'exam': r.data[0] if r.data else None}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
+@app.get('/api/school/exams/{class_id}')
+def school_list_exams(class_id: int):
+    try:
+        r = sb.table('school_exams').select('*').eq('class_id', class_id).order('exam_date').execute()
+        return {'ok': True, 'exams': r.data}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     system = "You are CoreKnow, an AI tutor for Nigerian students preparing for JAMB, WAEC, NECO, GCE, and secondary school. Answer step by step, in simple language. Use Nigerian context. Be warm and encouraging. Never reveal what model powers you."
