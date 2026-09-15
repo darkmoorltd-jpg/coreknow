@@ -7,6 +7,23 @@ import httpx
 
 app = FastAPI(title="CoreKnow API", version="1.0.0")
 
+
+@app.get("/")
+def root():
+    return {
+        "service": "CoreKnow API",
+        "version": "1.0.0",
+        "status": "live",
+        "docs": "/docs",
+        "endpoints": [
+            "/api/health",
+            "/api/subjects?exam=JAMB",
+            "/api/subjects/{subject}/topics?exam=JAMB",
+            "/api/lessons/{id}",
+            "/api/chat  (POST)",
+        ],
+    }
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
